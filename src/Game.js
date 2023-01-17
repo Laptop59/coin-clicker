@@ -33,11 +33,16 @@ class Game {
     }
 
     tick(t) {
+        t.updateText();
         t.resizeCanvas();
         t.animateCoin();
 
         // Again
         requestAnimationFrame(() => this.tick(t));
+    }
+
+    updateText() {
+        document.getElementsByTagName("h1").innerHTML = '<img src="">' + this.coinSize;
     }
 
     resizeCanvas() {
@@ -77,7 +82,6 @@ class Game {
     coinClick() {
         this.coinSize = 0.75 * 1.5;
         this.coins += this.cpc;
-        document.getElementsByTagName("h1")[0].textContent = this.coins;
     }
 }
 

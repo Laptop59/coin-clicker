@@ -12,10 +12,16 @@ $TB: 2;
     margin: 0;
 }
 
+@font-face {
+    font-family: "Noto Sans";
+    src: url("./fonts/NotoSans.ttf");
+}
+
 body {
     background-color: #fff6a9;
     margin: 0;
-    overflow: hidden
+    overflow: hidden;
+    font-family: "Noto Sans" !important;
 }
 
 h1 {
