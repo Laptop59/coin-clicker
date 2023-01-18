@@ -2,7 +2,7 @@
   "name": "coin-clicker",
   "version": "1.0.0",
   "description": "An idle (clicker) game of coins.",
-  "main": "arc/index.js",
+  "main": "src/index.js",
   "scripts": {
     "start": "webpack serve"
   },
