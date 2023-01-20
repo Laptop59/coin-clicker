@@ -7,7 +7,7 @@ const buildings = [
         "description": "Clicks to create %1.",
         "benefits": [1, 0], // first for click, second for /second.
         "cost": 15,
-        "increase": 1.4,
+        "increase": 1.2,
         "icon": [0, 1]
     },
     {
@@ -16,7 +16,7 @@ const buildings = [
         "description": "Works with families to make %1.",
         "benefits": [0, 25],
         "cost": 200,
-        "increase": 1.41,
+        "increase": 1.21,
         "icon": [0, 2]
     },
     {
@@ -25,7 +25,7 @@ const buildings = [
         "description": "Sells basic items making %1.",
         "benefits": [0, 450],
         "cost": 12000,
-        "increase": 1.42,
+        "increase": 1.22,
         "icon": [0, 3]
     },
     {
@@ -34,8 +34,17 @@ const buildings = [
         "description": "Uses interest to generate %1.",
         "benefits": [750, 0],
         "cost": 95000,
-        "increase": 1.43,
+        "increase": 1.23,
         "icon": [0, 5]
+    },
+    {
+        "id": "carnival",
+        "names": ["Carnival", "Carnivals"],
+        "description": "Sells tickets and souvenirs cashing out %1.",
+        "benefits": [0, 5500],
+        "increase": 1.24,
+        "cost": 1350000,
+        "icon": [0, 6]
     }
 ]
 

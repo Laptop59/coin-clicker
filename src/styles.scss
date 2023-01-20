@@ -125,6 +125,12 @@ h1 {
                 background-color: #fcdb4a;
                 border-radius: 5px;
                 margin: 4px;
+                transition-duration: 0.5s;
+
+                &.selected {
+                    background-color: #967a00;
+                    color: white;
+                }
             }
         }
     }
@@ -135,6 +141,16 @@ h1 {
         background-color: #ffe790;
         position: absolute;
         top: $TH;
+    }
+
+    .stats-wrapper {
+        margin-left: 15px;
+        line-height: 15px;
+
+        [stat] {
+            font-size: 20px;
+            font-weight: 500;
+        }
     }
 }
 
@@ -154,6 +170,7 @@ h1 {
         padding-left: 4px;
         padding-right: 4px;
         border-radius: 4px;
+        z-index: 999;
     }
 
     .buildings {
@@ -184,16 +201,17 @@ h1 {
 
                 h2 {
                     position: absolute;
-                    right: 25px;
+                    right: 15px;
                 }
 
                 >div {
                     position: absolute;
-                    right: 25px;
+                    right: 10px;
                     margin-top: 40px;
                     font-size: 17px;
                     font-weight: bold;
                     white-space: nowrap;
+                    z-index: 1;
 
                     img {
                         margin-bottom: -4px;
@@ -207,6 +225,19 @@ h1 {
                     margin-top: 34px;
                     color: rgba(0, 0, 0, 0.4);
                     user-select: none;
+                }
+
+                img.big {
+                    margin-top: 5.5px;
+                    margin-right: calc($BW - 102.5px);
+                    transition-duration: 0.825s;
+                    filter: brightness(-100%);
+                    opacity: 0.4;
+
+                    &.unlock {
+                        filter: none;
+                        opacity: 1;
+                    }
                 }
             }
         }
@@ -259,5 +290,72 @@ h1 {
     p {
         line-height: 17.5px;
         width: 225px;
+    }
+}
+
+.upgrade-tooltip {
+    background-color: rgba(0, 0, 0, 0.5);
+    position: absolute;
+    border-radius: 15px;
+    position: absolute;
+    color: white;
+    padding: 10px;
+    display: block;
+    h2 {
+        font-size: 18px;
+        margin: 0;
+        float: right;
+    }
+    div.nameIn {
+        width: calc(100% - 48px);
+        float: right
+    }
+    img {
+        position: absolute;
+    }
+    br {
+        line-height: 50px;
+    }
+    p {
+        line-height: 17.5px;
+        width: 225px;
+        margin: 2px 0;
+    }
+    span {
+        margin-left: 22.5px;
+        font-size: 18px;
+        &.afford {
+            color: #bbffbb;
+        }
+        &.noafford {
+            color: #ffbbbb;
+        }
+    }
+}
+
+.buy-bar {
+    width: 100%;
+    height: 25px;
+    background-color: #444;
+    margin-bottom: 15px;
+    button {
+        width: 32%;
+        height: 20px;
+        background-color: #555;
+        margin: 0;
+        padding: 0;
+        border: none;
+        display: inline;
+        transition: ease-in 0.35s;
+        font-weight: bold;
+        &.selected {
+            background-color: #ababab;
+        }
+        &[value="10"] {
+            color: #040;
+        }
+        &[value="100"] {
+            color: #044;
+        }
     }
 }

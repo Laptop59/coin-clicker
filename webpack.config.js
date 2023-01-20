@@ -22,9 +22,10 @@ module.exports = {
   plugins: [
     new CopyPlugin({
         patterns: [
-          { from: "./src/html", to: "./" }
+          { from: "./src/html", to: "./" },
+          { from: './src/sounds', to: './sounds/' }
         ],
-    })
+    }),
   ],
   resolve: {
     extensions: ['.js'],

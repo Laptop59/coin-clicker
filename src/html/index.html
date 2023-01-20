@@ -6,6 +6,11 @@
     </head>
 
     <body>
+        <div style="visibility: hidden">
+            <audio class="music" controls loop>
+                <source src="./sounds/music.wav" type="audio/wav">
+            </audio>
+        </div>
         <div class="canvas-wrapper">
             <div class="header">
                 <h1 class="coins-header">
@@ -27,16 +32,30 @@
             <div class="tab-wrapper">
                 <div>
                     <button type="stats">Stats</button>
-                    <button type="shop">Options</button>
+                    <button type="options">Options</button>
                 </div>
             </div>
-            <div class="work-wrapper"></div>
+            <div class="work-wrapper">
+                <div class="stats-wrapper">
+                    <p>Coins currently owned: <coin></coin><span stat="ownedCoins">...</span></p>
+                    <p>Total coins made: <coin></coin><span stat="totalCoins">...</span></p>
+                    <p>Clicks done: <icon x="0" y="1"></icon><span stat="clicks">...</span></p>
+                </div>
+                <div class="options-wrapper">
+
+                </div>
+            </div>
         </div>
         <div class="buildings-wrapper">
             <span>Upgrades</span>
             <div class="upgrades"></div>
             <br>
             <span>Buildings</span>
+            <div class="buy-bar">
+                <button value="1">1</button>
+                <button value="10">10</button>
+                <button value="100">100</button>
+            </div>
             <div class="buildings"></div>
         </div>
         <div class="building-tooltip" style="visibility: hidden;">
@@ -45,6 +64,16 @@
             <br>
             <br>
             <p>...</p>
+        </div>
+        <div class="upgrade-tooltip" style="visibility: hidden;">
+            <div></div>
+            <div className="nameIn"><h2>UPGRADE</h2></div>
+            <br>
+            <br>
+            <p>...</p>
+            <s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</s>
+            <p>...</p>
+            <p class="cost">Cost: </p>
         </div>
     </body>
 </html>
