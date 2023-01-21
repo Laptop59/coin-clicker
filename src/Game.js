@@ -3,9 +3,10 @@ import BIG_COIN_SRC from "./images/coin_button.png";
 import BLANK_SRC from "./images/blank_icon.png";
 import buildings from "./Buildings";
 import upgrades from "./Upgrades";
+import achievements from "./Achievements";
 
 class Game {
-    coins = 0 && Number.MAX_VALUE
+    coins = 1e12
     totalCoins = 0
     coinsPerClick = 1
     coinsPerSec = 0
@@ -20,6 +21,7 @@ class Game {
     images = {};
     buildings = {};
     bought = [];
+    achievements = [];
 
     ticks = 0;
 
@@ -73,7 +75,7 @@ class Game {
         document.querySelector('.tab-wrapper button[type="stats"]').addEventListener("click", this.setSelectedTab.bind(this, 0));
         document.querySelector('.tab-wrapper button[type="options"]').addEventListener("click", this.setSelectedTab.bind(this, 1));
 
-        for (let u of upgrades) {
+        for (let u of upgrades.sort((a, b) => a.cost - b.cost)) {
             const elem = this.generateUpgrade(u);
             document.getElementsByClassName("upgrades")[0].appendChild(elem);
             elem.addEventListener("click", this.clickUpgrade.bind(this, u.id));
@@ -136,9 +138,19 @@ class Game {
 
         t.resizeCanvas();
         t.animateCoin();
+        t.checkForNewAchievements();
 
         // Again
         requestAnimationFrame(() => this.tick(t, +new Date()));
+    }
+
+    checkForNewAchievements() {
+        for (const a of achievements.filter(a => this.achievements.indexOf(a.id) < 0)) {
+            if (a.goal(this)) {
+                this.achievements.push(a.id);
+                this.achievementPopUp(a);
+            }
+        }
     }
 
     updateText() {
@@ -310,7 +322,7 @@ class Game {
         const illion = Math.floor(Math.log10(number) / 3);
         const starting = Math.pow(10, illion * 3);
         
-        const float = number / starting;
+        const float = Math.floor(number / starting * 1000) / 1000;
 
         return float.toFixed(3) + (br ? "<br><span>" : " ") + this.illionSuffix(illion - 1) + (br ? "</span>" : "");
     }
@@ -424,11 +436,21 @@ class Game {
             }
         }
         // Increment coin count
-        this.add(this.coinsPerSec * delta);
+        this.add(this.coinsPerSec * delta * this.multiplier);
         // Change stats
         for (let stat of Object.entries(this.stat)) {
             document.querySelector("[stat=" + stat[0] + "]").textContent = this.commify(stat[1](), null, true);
         }
+    }
+
+    get rawCoinsPerClick() {
+        const value = this.coinsPerClick / this.multiplier;
+        return isNaN(value) ? 0 : value;
+    }
+
+    get rawCoinsPerSecond() {
+        const value = this.coinsPerSec / this.multiplier
+        return isNaN(value) ? 0 : value;
     }
 
     addToTotal(id, amount) {
@@ -513,6 +535,24 @@ class Game {
 
     registerStat(id, number) {
         this.stat[id] = number;
+    }
+
+    getNumberOfBuildings(id) {
+        return this.buildings[id] || 0;
+    }
+
+    achievementPopUp(achievement) {
+        const elem = document.createElement("div");
+        elem.setAttribute("recent", "0")
+        for (let other of document.querySelectorAll(".achievements >div")) {
+            let recent = +other.getAttribute("recent") + 1;
+            if (recent >= 3) {
+                other.parentElement.removeChild(other);
+            } else {
+                other.setAttribute("recent", recent.toString());
+            }
+        }
+        document.querySelector(".achievements").appendChild(elem);
     }
 }
 

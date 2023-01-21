@@ -45,6 +45,15 @@ const buildings = [
         "increase": 1.24,
         "cost": 1350000,
         "icon": [0, 6]
+    },
+    {
+        "id": "power_plant",
+        "names": ["Power Plant", "Power Plants"],
+        "description": "Generates coin energy to be converted to coins, generating %1 amount of energy.",
+        "benefits": [0, 65000],
+        "increase": 1.25,
+        "cost": 11000000,
+        "icon": [0, 7]
     }
 ]
 

@@ -359,3 +359,32 @@ h1 {
         }
     }
 }
+
+.achievements {
+    position: absolute;
+    width: 325px;
+    height: 100vh;
+    bottom: 0;
+    
+    left: 50%;
+    transform: translate(-50%, 0%);
+
+    >div {
+        width: 100%;
+        height: 125px;
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 20px;
+        border: 4px solid rgba(0, 0, 0, 0.3);
+        position: absolute;
+
+        &[recent="0"] {
+            bottom: 0;
+        }
+        &[recent="1"] {
+            bottom: 125px;
+        }
+        &[recent="2"] {
+            bottom: 250px;
+        }
+    }
+}
