@@ -11,5 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "copy-webpack-plugin": "^11.0.0"
+  },
+  "devDependencies": {
+    "webpack-dev-server": "^4.11.1"
   }
 }

@@ -4,6 +4,7 @@ import BLANK_SRC from "./images/blank_icon.png";
 import buildings from "./Buildings";
 import upgrades from "./Upgrades";
 import achievements from "./Achievements";
+import FallingCoin from "./FallingCoin";
 
 class Game {
     coins = 1.269e15
@@ -42,12 +43,17 @@ class Game {
     rates = {}
     total = {}
 
+    fallingCoins = [];
+
     stat = {}
     clicks = 0
 
     selectedTab = 0;
 
     multiplier = 1;
+
+    timeSinceCoinSpawn = 0;
+    coinSpawnInterval = 1000;
 
     constructor(save) {
         this.canvas = document.getElementsByClassName("canvas")[0];
@@ -123,22 +129,30 @@ class Game {
 
     doStart() {
         // Start our tick functions.
-        requestAnimationFrame(() => this.tick(this, +new Date()));
+        requestAnimationFrame(() => this.tick.bind(this, +new Date()));
     }
 
-    tick(t, time) {
+    tick(time) {
         this.ticks++
-        const delta = time - t.oldTime;
-        t.oldTime = time;
+        const delta = time - this.oldTime;
+        this.timeSinceCoinSpawn += delta;
+        this.oldTime = time;
 
-        t.updateVariables(delta / 1000);
-        t.updateText();
+        this.updateVariables(delta / 1000);
+        this.updateText();
 
-        if (this.ticks % 3 === 0) t.updateUpgrades();
+        if (this.ticks % 3 === 0) this.updateUpgrades();
 
-        t.resizeCanvas();
-        t.animateCoin();
-        t.checkForNewAchievements();
+        this.resizeCanvas();
+        this.animateCoin();
+
+        if (this.timeSinceCoinSpawn > coinSpawnInterval) {
+            // Spawn a coin.
+            this.fallingCoins.push(new FallingCoin(this.canvas, this.makeIcon(0, 0)))
+        }
+
+        this.animateFallingCoins();
+        this.checkForNewAchievements();
 
         // Again
         requestAnimationFrame(() => this.tick(t, +new Date()));
@@ -265,6 +279,10 @@ class Game {
         const HH = H * this.coinSize;
         
         ctx.drawImage(this.images.big_coin, (width - WW) / 2, (height - HH) / 2, WW, HH);
+    }
+
+    animateFallingCoins() {
+
     }
 
     canvasClick(e) {

@@ -20,9 +20,7 @@ const upgrades = [
         "benefits": {
             cursor: x => x * 2
         },
-        "requirements": {
-            cursor: 5
-        },
+        "requirements": {cursor: 5},
         "icon": [0, 1]
     },
     {
@@ -34,9 +32,7 @@ const upgrades = [
         "benefits": {
             family: x => x * 3
         },
-        "requirements": {
-            family: 5
-        },
+        "requirements": {family: 5},
         "icon": [0, 2]
     },
     {
@@ -48,9 +44,7 @@ const upgrades = [
         "benefits": {
             shop: x => x * 3
         },
-        "requirements": {
-            shop: 5
-        },
+        "requirements": {shop: 5},
         "icon": [0, 3]
     },
     {
@@ -62,9 +56,7 @@ const upgrades = [
         "benefits": {
             bank: x => x * 2
         },
-        "requirements": {
-            bank: 5
-        },
+        "requirements": {bank: 5},
         "icon": [0, 5]
     },
     {
@@ -76,9 +68,7 @@ const upgrades = [
         "benefits": {
             carnival: x => x * 2
         },
-        "requirements": {
-            carnival: 5
-        },
+        "requirements": {carnival: 5},
         "icon": [0, 6]
     },
     {
@@ -90,9 +80,7 @@ const upgrades = [
         "benefits": {
             power_plant: x => x * 2
         },
-        "requirements": {
-            power_plant: 5
-        },
+        "requirements": {power_plant: 5},
         "icon": [0, 7]
     },
     {
@@ -104,9 +92,7 @@ const upgrades = [
         "benefits": {
             cursor: x => x * 3
         },
-        "requirements": {
-            cursor: 15
-        },
+        "requirements": {cursor: 15},
         "icon": [1, 1]
     },
     {
@@ -119,9 +105,7 @@ const upgrades = [
             family: x => x * 10,
             shop: (x, _, game) => x * (1 + game.getNumberOfBuildings('family') / 100)
         },
-        "requirements": {
-            family: 15
-        },
+        "requirements": {family: 15},
         "icon": [1, 2]
     },
     {
@@ -133,9 +117,7 @@ const upgrades = [
         "benefits": {
             shop: x => x * 5
         },
-        "requirements": {
-            shop: 15
-        },
+        "requirements": {shop: 15},
         "icon": [1, 3]
     },
     {
@@ -147,9 +129,7 @@ const upgrades = [
         "benefits": {
             bank: x => x * 7
         },
-        "requirements": {
-            bank: 15
-        },
+        "requirements": {bank: 15},
         "icon": [1, 5]
     },
     {
@@ -161,9 +141,7 @@ const upgrades = [
         "benefits": {
             carnival: x => x * 3
         },
-        "requirements": {
-            carnival: 15
-        },
+        "requirements": {carnival: 15},
         "icon": [1, 6]
     },
     {
@@ -175,9 +153,7 @@ const upgrades = [
         "benefits": {
             power_plant: x => x * 3
         },
-        "requirements": {
-            power_plant: 15
-        },
+        "requirements": {power_plant: 15},
         "icon": [1, 7]
     },
     {
@@ -189,9 +165,7 @@ const upgrades = [
         "benefits": {
             cursor: x => x * 8
         },
-        "requirements": {
-            cursor: 35
-        },
+        "requirements": {cursor: 35},
         "icon": [2, 1]
     },
     {
@@ -203,9 +177,7 @@ const upgrades = [
         "benefits": {
             cursor: (x, _, game) => x * (1 + game.getTotalBuildings(true) / 100)
         },
-        "requirements": {
-            cursor: 50
-        },
+        "requirements": {cursor: 50},
         "icon": [3, 1]
     },
     {
@@ -217,9 +189,7 @@ const upgrades = [
         "benefits": {
             cursor: (x, _, game) => x * (1 + game.getTotalBuildings(true) / 50)
         },
-        "requirements": {
-            cursor: 75
-        },
+        "requirements": {cursor: 75},
         "icon": [4, 1]
     },
     {
@@ -231,9 +201,7 @@ const upgrades = [
         "benefits": {
             cursor: (x, _, game) => x * (1 + game.getTotalBuildings(true) / 100 * 3)
         },
-        "requirements": {
-            cursor: 100
-        },
+        "requirements": {cursor: 100},
         "icon": [5, 1]
     },
 ];
