@@ -247,14 +247,14 @@ h1 {
         button {
             border: 0;
             padding: 0;
-            img {
+            div {
                 border: 2px solid rgba(0, 0, 0, 0.2);
                 margin: 2px;
             }
             
             &[afford="true"] {
                 background-color: #ffde71;
-                img {
+                div {
                     border: 3px solid rgba(0, 0, 0, 0.45);
                 }
             }
