@@ -22,6 +22,14 @@ const achievements = [
         how: "Make <b>10 coins</b> per second.",
         goal: game => game.rawCoinsPerSecond >= 10,
         icon: [6, 0]
+    },
+    {
+        id: "free",
+        name: "ancdefghjjdjdsfvjsjadskjskvjaskvjasksudijisdjs",
+        description: "Some with the same descriptions!",
+        how: "This has a <b>100%</b> of working an hour.",
+        goal: game => true,
+        icon: [6, 0]
     }
 ]
 

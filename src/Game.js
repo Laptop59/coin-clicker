@@ -6,7 +6,7 @@ import upgrades from "./Upgrades";
 import achievements from "./Achievements";
 
 class Game {
-    coins = 1e12
+    coins = 1.269e15
     totalCoins = 0
     coinsPerClick = 1
     coinsPerSec = 0
@@ -543,8 +543,43 @@ class Game {
 
     achievementPopUp(achievement) {
         const elem = document.createElement("div");
+
+        const imgdiv = document.createElement("div");
+        imgdiv.className = "imgdiv";
+        imgdiv.appendChild(this.makeIcon(achievement.icon[0], achievement.icon[1], 32));
+        elem.appendChild(imgdiv);
+
+        const titlediv = document.createElement("div");
+        titlediv.className = "titlediv";
+
+        const title = document.createElement("h1");
+        title.textContent = achievement.name;
+        titlediv.appendChild(title);
+        elem.append(titlediv);
+
+        const A = document.querySelector(".achievement").innerHTML;
+        const adiv = document.createElement("div");
+        adiv.className = "adiv";
+        adiv.innerHTML = A;
+        adiv.querySelector(".description").innerHTML = achievement.description;
+        adiv.querySelector(".how").innerHTML = achievement.how;
+        elem.append(adiv);
+
+        const close = document.createElement("button");
+        close.textContent = "\u00d7";
+        close.addEventListener("click", () => {
+            elem.parentElement.removeChild(elem)
+            let i = 0;
+            let elems = document.querySelectorAll(".achievements >div >div");
+            for (let other of [...elems].sort((a, b) => a.getAttribute("recent") - b.getAttribute("recent"))) {
+                other.setAttribute("recent", (i++).toString());
+            }
+        });
+    
+        elem.append(close);
+
         elem.setAttribute("recent", "0")
-        for (let other of document.querySelectorAll(".achievements >div")) {
+        for (let other of document.querySelectorAll(".achievements >div >div")) {
             let recent = +other.getAttribute("recent") + 1;
             if (recent >= 3) {
                 other.parentElement.removeChild(other);
@@ -552,7 +587,7 @@ class Game {
                 other.setAttribute("recent", recent.toString());
             }
         }
-        document.querySelector(".achievements").appendChild(elem);
+        document.querySelector(".achievements >div").appendChild(elem);
     }
 }
 

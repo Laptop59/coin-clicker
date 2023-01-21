@@ -370,21 +370,63 @@ h1 {
     transform: translate(-50%, 0%);
 
     >div {
-        width: 100%;
-        height: 125px;
-        background-color: rgba(0, 0, 0, 0.2);
-        border-radius: 20px;
-        border: 4px solid rgba(0, 0, 0, 0.3);
         position: absolute;
+        bottom: 0;
 
-        &[recent="0"] {
-            bottom: 0;
-        }
-        &[recent="1"] {
-            bottom: 125px;
-        }
-        &[recent="2"] {
-            bottom: 250px;
+        >div {
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            border: 4px solid rgba(0, 0, 0, 0.45);
+
+            div.imgdiv {
+                width: 32px;
+                height: 32px;
+                margin-left: 10px;
+                margin-top: 10px;
+                position: absolute;
+                outline: 4px solid rgba(255, 255, 255, 0.815);
+            }
+
+            div.titlediv {
+                width: calc(100% - 32px - 20px);
+                color: white;
+                height: 48px;
+                margin-top: 5px;
+                font-size: 10px;
+                line-height: 20px;
+                position: absolute;
+                margin-left: 54px;
+                h1 {
+                    margin: 0;
+                    word-wrap: break-word;
+                }
+            }
+
+            div.adiv {
+                font-size: 18px;
+                line-height: 6px;
+                color: white;
+                margin-top: 60px;
+                margin-left: 10px;
+
+                >div {
+                    width: 100%;
+                    height: -2px;
+                }
+            }
+
+            button {
+                background-color: transparent;
+                position: absolute;
+                font-size: 25px;
+                font-weight: bolder;
+                color: rgb(0, 0, 0);
+                margin-left: -5px;
+                margin-top: -118.5px;
+                border: 0;
+                text-shadow: 0 0 10px white;
+            }
         }
     }
 }
