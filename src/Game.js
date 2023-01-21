@@ -480,9 +480,11 @@ class Game {
 
     generateUpgrade(upgrade) {
         const icon = this.makeIcon(upgrade.icon[0], upgrade.icon[1], 48);
+        const div = document.createElement("div");
+        div.appendChild(icon);
         const button = document.createElement("button");
         button.className = "upgrade-" + upgrade.id;
-        button.appendChild(icon);
+        button.appendChild(div);
         return button;
     }
 
