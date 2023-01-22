@@ -7,11 +7,12 @@ import achievements from "./Achievements";
 import FallingCoin from "./FallingCoin";
 
 class Game {
-    coins = 1.269e15
+    coins = 0
     totalCoins = 0
     coinsPerClick = 1
     coinsPerSec = 0
     oldTime = +new Date()
+    playingMusic = false;
 
     ready = 0;
     canvas = null;
@@ -30,9 +31,12 @@ class Game {
     
     selectedBuilding = null;
     selectedUpgrade = null;
+    selectedAchievement = null;
 
     mouseX = 0;
     mouseY = 0;
+
+    achieveMultiplier = 1;
 
     buyModeColours = {
         1:   "black",
@@ -63,6 +67,15 @@ class Game {
         if (++this.ready > 1) this.doStart();
     }
 
+    getCurrentMultiplier() {
+        this.achieveMultiplier = Math.pow(1.25, this.achievements.length);
+        const m = [
+            this.achieveMultiplier,
+            this.coins > 1 ? Math.log(this.coins)**2 : 1
+        ];
+        return m.reduce((a, b) => a * b);
+    }
+
     setMouse(e) {
         this.mouseX = e.clientX;
         this.mouseY = e.clientY;
@@ -71,6 +84,9 @@ class Game {
     loadImages() {
         this.images.big_coin = new Image();
         this.images.big_coin.src = BIG_COIN_SRC;
+
+        this.images.coin = new Image();
+        this.images.coin.src = COIN_SRC;
 
         document.getElementsByClassName("coins-header")[0].getElementsByTagName("div")[0].appendChild(this.makeIcon(0, 0, 32));
         document.getElementsByClassName("cpc-header")[0].getElementsByTagName("div")[0].appendChild(this.makeIcon(0, 0, 24));
@@ -99,6 +115,17 @@ class Game {
             elem.addEventListener("mouseover", () => this.selectedBuilding = b.id);
         }
 
+        for (let a of achievements) {
+            const imgdiv = document.createElement("div");
+            imgdiv.className = "imgdiv achievement-" + a.id;
+            imgdiv.appendChild(this.makeIcon(0, 4, 64));
+
+            imgdiv.addEventListener("mouseout", () => this.selectedAchievement = null);
+            imgdiv.addEventListener("mouseover", () => this.selectedAchievement = a.id);
+
+            document.querySelector("achievements").appendChild(imgdiv);
+        }
+
         for (let button of document.querySelectorAll(".buy-bar button")) {
             button.addEventListener("click", this.changeBuyMode.bind(this, +button.getAttribute("value")))
         }
@@ -116,11 +143,29 @@ class Game {
 
         this.changeBuyMode(1);
 
-        document.querySelector('.music').play();
+        try {
+            this.playMusic()
+        } catch {
+            console.warn("Will attempt to play music after coin click.")
+        }
 
         this.registerStat("ownedCoins", () => this.coins);
-        this.registerStat("totalCoins", () => this.totalCoins)
-        this.registerStat("clicks", () => this.clicks)
+        this.registerStat("totalCoins", () => this.totalCoins);
+        this.registerStat("rawCoinsPerClick", () => this.rawCoinsPerClick);
+        this.registerStat("rawCoinsPerSec", () => this.rawCoinsPerSec);
+        this.registerStat("clicks", () => this.clicks);
+        this.registerStat("multiplier", () => this.multiplier * 100)
+        this.registerStat("unlockedAchievements", () => this.achievements.length);
+        this.registerStat("totalAchievements", () => achievements.length);
+        this.registerStat("buildings", () => this.buildingsNumber)
+        this.registerStat("achievementMultiplier", () => this.achieveMultiplier * 100)
+    }
+
+    playMusic() {
+        if (!this.playingMusic) {
+            this.playingMusic = true;
+            document.querySelector('.music').play()
+        }
     }
 
     start() {
@@ -129,7 +174,7 @@ class Game {
 
     doStart() {
         // Start our tick functions.
-        requestAnimationFrame(() => this.tick.bind(this, +new Date()));
+        requestAnimationFrame(this.tick.bind(this, +new Date()));
     }
 
     tick(time) {
@@ -144,18 +189,22 @@ class Game {
         if (this.ticks % 3 === 0) this.updateUpgrades();
 
         this.resizeCanvas();
-        this.animateCoin();
+        this.animateCoin(delta);
 
-        if (this.timeSinceCoinSpawn > coinSpawnInterval) {
+        this.coinSpawnInterval = Math.max(100, 1000 / Math.log10(this.coins))
+        if (this.coins <= 0) this.coinSpawnInterval = Infinity;
+
+        if (this.timeSinceCoinSpawn > this.coinSpawnInterval) {
             // Spawn a coin.
-            this.fallingCoins.push(new FallingCoin(this.canvas, this.makeIcon(0, 0)))
+            this.fallingCoins.push(new FallingCoin(this.canvas, this.images.coin))
+            // set coins spawn to 0 instead of reducing it
+            this.timeSinceCoinSpawn = 0;
         }
 
-        this.animateFallingCoins();
         this.checkForNewAchievements();
 
         // Again
-        requestAnimationFrame(() => this.tick(t, +new Date()));
+        requestAnimationFrame(this.tick.bind(this, new Date()));
     }
 
     checkForNewAchievements() {
@@ -164,13 +213,18 @@ class Game {
                 this.achievements.push(a.id);
                 this.achievementPopUp(a);
             }
+            if (this.achievements.indexOf(a.id) >= 0) {
+                const div = document.querySelector(".achievement-" + a.id);
+                div.removeChild(div.children[0]);
+                div.appendChild(this.makeIcon(...a.icon, 64))
+            }
         }
     }
 
     updateText() {
         document.getElementsByClassName("coins-header")[0].getElementsByTagName("span")[0].innerHTML = "" + this.commify(this.coins, true);
-        document.getElementsByClassName("cpc-header")[0].getElementsByTagName("span")[0].innerHTML = this.commify(this.coinsPerClick) + "/click";
-        document.getElementsByClassName("cps-header")[0].getElementsByTagName("span")[0].innerHTML = this.coinsPerSec ? (this.commify(this.coinsPerSec) + "/second") : "";
+        document.getElementsByClassName("cpc-header")[0].getElementsByTagName("span")[0].innerHTML = this.commify(this.mulCoinsPerClick) + "/click";
+        document.getElementsByClassName("cps-header")[0].getElementsByTagName("span")[0].innerHTML = this.coinsPerSec ? (this.commify(this.mulCoinsPerSec) + "/second") : "";
         document.getElementsByClassName("cps-header")[0].style.visibility = this.coinsPerSec ? "" : "hidden";
 
         for (let building of buildings) {
@@ -212,12 +266,28 @@ class Game {
 
             // Set desc
             elem.getElementsByTagName("p")[0].innerHTML = unlock ?
-                (buildings[id].description.replace("%1", this.convertToEnglish(this.rates[buildings[id].id]) +
-                    (amount > 1 ? (", each making " + this.convertToEnglish(this.rates[buildings[id].id]?.map(x => x / this.buildings[buildings[id].id]))) : "")) +
+                (buildings[id].description.replace("%1", this.convertToEnglish(this.rates[buildings[id].id]?.map(x => x * this.multiplier)) +
+                    (amount > 1 ? (", each making " + this.convertToEnglish(this.rates[buildings[id].id]?.map(x => x * this.multiplier / this.buildings[buildings[id].id]))) : "")) +
                     (amount ? ("<br><b>" + this.commify(this.total[buildings[id].id]) + " coins made so far.</b>") : ""))
                 : "???";
         } else {
             document.getElementsByClassName("building-tooltip")[0].style.visibility = "hidden";
+        }
+
+        const achievementTooltip = document.querySelector(".achievement-tooltip")
+        if (this.selectedAchievement) {
+            const a = achievements.find(a => a.id === this.selectedAchievement);
+            const elem = this.achievementPopUp(a, true, this.achievements.indexOf(a.id) < 0);
+
+            achievementTooltip.style.left = (this.mouseX) + "px";
+
+            achievementTooltip.removeChild(achievementTooltip.children[0])
+            achievementTooltip.appendChild(elem);
+
+            achievementTooltip.style.visibility = "visible";
+            achievementTooltip.style.top = (this.mouseY - 25 - achievementTooltip.clientHeight) + "px";
+        } else {
+            achievementTooltip.style.visibility = "hidden";
         }
 
         if (this.selectedUpgrade) {
@@ -269,7 +339,7 @@ class Game {
         canvas.height = canvas.clientHeight;
     }
 
-    animateCoin() {
+    animateCoin(delta) {
         this.coinSize += (1.5 - this.coinSize) / 4;
 
         const ctx = this.canvas.getContext("2d");
@@ -277,12 +347,19 @@ class Game {
         const {width: W, height: H} = this.images.big_coin;
         const WW = W * this.coinSize;
         const HH = H * this.coinSize;
-        
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+        this.animateFallingCoins(delta);
         ctx.drawImage(this.images.big_coin, (width - WW) / 2, (height - HH) / 2, WW, HH);
     }
 
-    animateFallingCoins() {
-
+    animateFallingCoins(delta) {
+        for (let coinIndex in this.fallingCoins) {
+            let coin = this.fallingCoins[coinIndex]
+            coin.draw();
+            coin.fall(delta);
+            // If too far down, delete the coin.
+            if (coin.y > this.canvas.height + 200) this.fallingCoins.splice(coinIndex, 1);
+        }
     }
 
     canvasClick(e) {
@@ -307,8 +384,10 @@ class Game {
     }
 
     coinClick() {
+        this.playMusic();
+
         this.coinSize = 0.75 * 1.5;
-        this.add(this.coinsPerClick);
+        this.add(this.coinsPerClick * this.multiplier);
         this.clicks++;
         
         for (let building of buildings) {
@@ -427,7 +506,7 @@ class Game {
         this.coinsPerClick = 1;
         this.coinsPerSec = 0;
         // Create multipliers... here todo
-        this.multiplier = 1;
+        this.multiplier = this.getCurrentMultiplier();
         // Look through every building.
         for (let building of buildings) {
             const amount = this.buildings[building.id] || 0;
@@ -462,12 +541,22 @@ class Game {
     }
 
     get rawCoinsPerClick() {
-        const value = this.coinsPerClick / this.multiplier;
+        const value = this.coinsPerClick;
         return isNaN(value) ? 0 : value;
     }
 
-    get rawCoinsPerSecond() {
-        const value = this.coinsPerSec / this.multiplier
+    get rawCoinsPerSec() {
+        const value = this.coinsPerSec
+        return isNaN(value) ? 0 : value;
+    }
+    
+    get mulCoinsPerClick() {
+        const value = this.coinsPerClick * this.multiplier;
+        return isNaN(value) ? 0 : value;
+    }
+
+    get mulCoinsPerSec() {
+        const value = this.coinsPerSec * this.multiplier
         return isNaN(value) ? 0 : value;
     }
 
@@ -534,6 +623,10 @@ class Game {
         return "<b>" + parts.join(" and ") + extra + "</b>";
     }
 
+    get buildingsNumber() {
+        return this.getTotalBuildings();
+    }
+
     getTotalBuildings(excludeCursors) {
         var number = 0;
         for (let id of Object.keys(this.buildings)) {
@@ -561,19 +654,19 @@ class Game {
         return this.buildings[id] || 0;
     }
 
-    achievementPopUp(achievement) {
+    achievementPopUp(achievement, isTooltip = false, locked = null) {
         const elem = document.createElement("div");
 
         const imgdiv = document.createElement("div");
         imgdiv.className = "imgdiv";
-        imgdiv.appendChild(this.makeIcon(achievement.icon[0], achievement.icon[1], 32));
+        imgdiv.appendChild(this.makeIcon(...(locked ? [0, 4] : achievement.icon), 32));
         elem.appendChild(imgdiv);
 
         const titlediv = document.createElement("div");
         titlediv.className = "titlediv";
 
         const title = document.createElement("h1");
-        title.textContent = achievement.name;
+        title.textContent = locked ? "???" : achievement.name;
         titlediv.appendChild(title);
         elem.append(titlediv);
 
@@ -581,33 +674,37 @@ class Game {
         const adiv = document.createElement("div");
         adiv.className = "adiv";
         adiv.innerHTML = A;
-        adiv.querySelector(".description").innerHTML = achievement.description;
-        adiv.querySelector(".how").innerHTML = achievement.how;
+        adiv.querySelector(".description").innerHTML = locked ? "" : achievement.description;
+        adiv.querySelector(".how").innerHTML = locked ? "" : achievement.how;
         elem.append(adiv);
 
-        const close = document.createElement("button");
-        close.textContent = "\u00d7";
-        close.addEventListener("click", () => {
-            elem.parentElement.removeChild(elem)
-            let i = 0;
-            let elems = document.querySelectorAll(".achievements >div >div");
-            for (let other of [...elems].sort((a, b) => a.getAttribute("recent") - b.getAttribute("recent"))) {
-                other.setAttribute("recent", (i++).toString());
+        if (!isTooltip) {
+            const close = document.createElement("button");
+            close.textContent = "\u00d7";
+            close.addEventListener("click", () => {
+                elem.parentElement.removeChild(elem)
+                let i = 0;
+                let elems = document.querySelectorAll(".achievements >div >div");
+                for (let other of [...elems].sort((a, b) => a.getAttribute("recent") - b.getAttribute("recent"))) {
+                    other.setAttribute("recent", (i++).toString());
+                }
+            });
+        
+            elem.append(close);
+            elem.setAttribute("recent", "0")
+            for (let other of document.querySelectorAll(".achievements >div >div")) {
+                let recent = +other.getAttribute("recent") + 1;
+                if (recent >= 3) {
+                    other.parentElement.removeChild(other);
+                } else {
+                    other.setAttribute("recent", recent.toString());
+                }
             }
-        });
-    
-        elem.append(close);
-
-        elem.setAttribute("recent", "0")
-        for (let other of document.querySelectorAll(".achievements >div >div")) {
-            let recent = +other.getAttribute("recent") + 1;
-            if (recent >= 3) {
-                other.parentElement.removeChild(other);
-            } else {
-                other.setAttribute("recent", recent.toString());
-            }
+            document.querySelector(".achievements >div").appendChild(elem);
+            close.setAttribute("style", "--up: " + elem.clientHeight + ";");
+        } else {
+            return elem;
         }
-        document.querySelector(".achievements >div").appendChild(elem);
     }
 }
 
