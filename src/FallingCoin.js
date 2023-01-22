@@ -24,7 +24,6 @@ class FallingCoin {
         let xOffset = this.x * this.canvas.width + (xs/2) * this.s;
         let yOffset = this.y + (ys/2) * this.s;
         this.ctx.save()
-        this.ctx.fillRect(xOffset, yOffset, 10, 10)
         this.ctx.translate(xOffset, yOffset)
         this.ctx.rotate(this.rotation);
         this.ctx.translate(-xOffset, -yOffset)

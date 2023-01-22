@@ -144,6 +144,7 @@ h1 {
         background-color: #ffe790;
         position: absolute;
         top: $TH;
+        overflow-y: auto;
     }
 
     .stats-wrapper {
@@ -368,7 +369,7 @@ h1 {
 .achievements {
     position: absolute;
     width: 325px;
-    height: 100vh;
+    max-height: 100vh;
     bottom: 0;
     
     left: 50%;
@@ -377,13 +378,14 @@ h1 {
     >div {
         position: absolute;
         bottom: 0;
-        z-index: 10;
 
         >div {
             width: 100%;
-            background-color: rgba(0, 0, 0, 0.3);
+            background-color: rgba(0, 0, 0, 0.55);
             border-radius: 20px;
-            border: 4px solid rgba(0, 0, 0, 0.45);
+            border: 4px solid rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            position: relative;
 
             div.imgdiv {
                 width: 32px;
@@ -444,7 +446,6 @@ achievements div.imgdiv {
     margin-right: 10px;
     margin-bottom: 10px;
     display: inline-block;
-    z-index: 2;
     position: relative;
 }
 
@@ -509,4 +510,13 @@ achievements div.imgdiv {
             text-shadow: 0 0 10px white;
         }
     }
+}
+
+::-webkit-scrollbar {
+    background-color: #ffe896;
+    border: 2px #fff5d4 solid;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #fff5d4;
+    border: 2px black solid;
 }

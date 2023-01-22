@@ -54,6 +54,24 @@ const buildings = [
         "increase": 1.25,
         "cost": 11000000,
         "icon": [0, 7]
+    },
+    {
+        "id": "industry",
+        "names": ["Industry", "Industries"],
+        "description": "Produces coins and smoke, which is converted into more shiny coins, producing %1.",
+        "benefits": [0, 475000],
+        "increase": 1.26,
+        "cost": 175000000,
+        "icon": [0, 8]
+    },
+    {
+        "id": "lab",
+        "names": ["Technological Lab", "Technological Labs"],
+        "description": "Finds and creates new technology, which all together technologically code in %1.",
+        "benefits": [100000, 3000000],
+        "increase": 1.27,
+        "cost": 7250000000,
+        "icon": [0, 9]
     }
 ]
 

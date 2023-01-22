@@ -7,7 +7,7 @@ import achievements from "./Achievements";
 import FallingCoin from "./FallingCoin";
 
 class Game {
-    coins = 0
+    coins = 1e15
     totalCoins = 0
     coinsPerClick = 1
     coinsPerSec = 0
@@ -68,10 +68,9 @@ class Game {
     }
 
     getCurrentMultiplier() {
-        this.achieveMultiplier = Math.pow(1.25, this.achievements.length);
+        this.achieveMultiplier = Math.pow(1.15, this.achievements.length);
         const m = [
-            this.achieveMultiplier,
-            this.coins > 1 ? Math.log(this.coins)**2 : 1
+            this.achieveMultiplier
         ];
         return m.reduce((a, b) => a * b);
     }
@@ -158,7 +157,7 @@ class Game {
         this.registerStat("unlockedAchievements", () => this.achievements.length);
         this.registerStat("totalAchievements", () => achievements.length);
         this.registerStat("buildings", () => this.buildingsNumber)
-        this.registerStat("achievementMultiplier", () => this.achieveMultiplier * 100)
+        this.registerStat("achievementMultiplier", () => Math.round(this.achieveMultiplier * 100))
     }
 
     playMusic() {
@@ -277,15 +276,19 @@ class Game {
         const achievementTooltip = document.querySelector(".achievement-tooltip")
         if (this.selectedAchievement) {
             const a = achievements.find(a => a.id === this.selectedAchievement);
-            const elem = this.achievementPopUp(a, true, this.achievements.indexOf(a.id) < 0);
+
+            if (achievementTooltip.getAttribute("selected") !== this.selectedAchievement) {
+                const elem = this.achievementPopUp(a, true, this.achievements.indexOf(a.id) < 0);
+                achievementTooltip.removeChild(achievementTooltip.children[0])
+                achievementTooltip.appendChild(elem);
+            }
 
             achievementTooltip.style.left = (this.mouseX) + "px";
 
-            achievementTooltip.removeChild(achievementTooltip.children[0])
-            achievementTooltip.appendChild(elem);
-
             achievementTooltip.style.visibility = "visible";
             achievementTooltip.style.top = (this.mouseY - 25 - achievementTooltip.clientHeight) + "px";
+
+            achievementTooltip.setAttribute("selected", this.selectedAchievement);
         } else {
             achievementTooltip.style.visibility = "hidden";
         }
