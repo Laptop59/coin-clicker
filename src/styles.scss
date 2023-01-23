@@ -145,15 +145,20 @@ h1 {
         position: absolute;
         top: $TH;
         overflow-y: auto;
-    }
 
-    .stats-wrapper {
-        margin-left: 15px;
-        line-height: 15px;
+        .stats-wrapper, .options-wrapper {
+            position: absolute;
+            margin-left: 15px;
+            line-height: 15px;
 
-        [stat] {
-            font-size: 20px;
-            font-weight: 500;
+            [stat] {
+                font-size: 20px;
+                font-weight: 500;
+            }
+
+            .saveGameFile, .saveGameText, .loadGameFile, .loadGameText {
+                margin-right: 5px;
+            }
         }
     }
 }

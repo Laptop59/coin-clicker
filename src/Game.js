@@ -5,6 +5,7 @@ import buildings from "./Buildings";
 import upgrades from "./Upgrades";
 import achievements from "./Achievements";
 import FallingCoin from "./FallingCoin";
+import SaveManager from "./SaveManager";
 
 class Game {
     coins = 1e15
@@ -55,24 +56,53 @@ class Game {
     selectedTab = 0;
 
     multiplier = 1;
+    unboostedMultiplier = 1;
+    boostMultiplier = 1;
 
     timeSinceCoinSpawn = 0;
     coinSpawnInterval = 1000;
+
+    saveManager
 
     constructor(save) {
         this.canvas = document.getElementsByClassName("canvas")[0];
         this.canvas.addEventListener("click", this.canvasClick.bind(this));
         document.addEventListener("mousemove", this.setMouse.bind(this))
+
+        this.saveManager = new SaveManager(this);
         this.loadImages();
+
+        document.querySelector(".saveGameText").addEventListener("click", this.saveGame.bind(this, false))
+        document.querySelector(".saveGameFile").addEventListener("click", this.saveGame.bind(this, true))
+
+        document.querySelector(".loadGameText").addEventListener("click", this.loadGame.bind(this, false))
+        document.querySelector(".loadGameFile").addEventListener("click", this.loadGame.bind(this, true))
+
         if (++this.ready > 1) this.doStart();
+    }
+
+    saveGame(file) {
+        const code = this.saveManager.generateText();
+        alert(code);
+    }
+
+    loadGame(file) {
+
     }
 
     getCurrentMultiplier() {
         this.achieveMultiplier = Math.pow(1.15, this.achievements.length);
         const m = [
+            1,
             this.achieveMultiplier
         ];
-        return m.reduce((a, b) => a * b);
+        this.unboostedMultiplier = m.reduce((a, b) => a * b);
+        const bm = [
+            1
+        ];
+        this.boostMultiplier = bm.reduce((a, b) => a * b);
+        this.multiplier = this.unboostedMultiplier * this.boostMultiplier;
+        return this.multiplier;
     }
 
     setMouse(e) {
@@ -153,7 +183,7 @@ class Game {
         this.registerStat("rawCoinsPerClick", () => this.rawCoinsPerClick);
         this.registerStat("rawCoinsPerSec", () => this.rawCoinsPerSec);
         this.registerStat("clicks", () => this.clicks);
-        this.registerStat("multiplier", () => this.multiplier * 100)
+        this.registerStat("multiplier", () => Math.round(this.multiplier * 100))
         this.registerStat("unlockedAchievements", () => this.achievements.length);
         this.registerStat("totalAchievements", () => achievements.length);
         this.registerStat("buildings", () => this.buildingsNumber)
@@ -508,8 +538,7 @@ class Game {
     updateVariables(delta) {
         this.coinsPerClick = 1;
         this.coinsPerSec = 0;
-        // Create multipliers... here todo
-        this.multiplier = this.getCurrentMultiplier();
+        this.getCurrentMultiplier();
         // Look through every building.
         for (let building of buildings) {
             const amount = this.buildings[building.id] || 0;
@@ -544,12 +573,12 @@ class Game {
     }
 
     get rawCoinsPerClick() {
-        const value = this.coinsPerClick;
+        const value = this.coinsPerClick * this.unboostedMultiplier;
         return isNaN(value) ? 0 : value;
     }
 
     get rawCoinsPerSec() {
-        const value = this.coinsPerSec
+        const value = this.coinsPerSec * this.unboostedMultiplier;
         return isNaN(value) ? 0 : value;
     }
     

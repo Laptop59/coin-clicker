@@ -224,7 +224,7 @@ const achievements = [
         name: "Coinstruction",
         description: "Wait. How do family businesses get constructed?",
         how: "Have a total of 50 buildings.",
-        goal: game => game.buildingsNumber >= 25,
+        goal: game => game.buildingsNumber >= 50,
         icon: [1, 4]
     },
     {
