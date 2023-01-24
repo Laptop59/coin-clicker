@@ -83,7 +83,53 @@ class Game {
 
     saveGame(file) {
         const code = this.saveManager.generateText();
-        alert(code);
+        
+        const saveDiv = document.createElement("div");
+        this.addToElement(saveDiv, "p", "Your save code for Coin Clicker:<br>");
+
+        const textarea = this.addToElement(saveDiv, "textarea");
+        textarea.setAttribute("readonly", "true");
+        textarea.setAttribute("unresizable", "true");
+
+        textarea.textContent = code;
+
+        this.addToElement(saveDiv, "br")
+        this.showDialog("Save Code", saveDiv);
+    }
+
+    addToElement(div, tagName, innerHTML = "") {
+        const element = document.createElement(tagName);
+        if (innerHTML) element.innerHTML = innerHTML;
+        div.appendChild(element);
+        return element;
+    }
+
+    showDialog(title, element, buttons = ["OK"]) {
+        return new Promise(resolve => {
+            for (let index = 0; index < buttons.length; index++) {
+                const text = buttons[index];
+                const button = document.createElement("button");
+                button.textContent = text;
+                button.addEventListener("click", () => {
+                    document.querySelector(".dialog").style.visibility = "hidden";
+                    resolve(index)
+                })
+                element.append(button);
+            }
+
+            document.querySelector(".dialog .box").innerHTML = "";
+
+            const titleDiv = this.addToElement(document.querySelector(".dialog .box"), "div");
+            
+            titleDiv.className = "title";
+            titleDiv.textContent = title;
+
+            element.className = "content";
+
+            document.querySelector(".dialog .box").appendChild(titleDiv);
+            document.querySelector(".dialog .box").appendChild(element);
+            document.querySelector(".dialog").style.visibility = "visible";
+        });
     }
 
     loadGame(file) {

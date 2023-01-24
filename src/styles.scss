@@ -525,3 +525,71 @@ achievements div.imgdiv {
     background-color: #fff5d4;
     border: 2px black solid;
 }
+
+.dialog {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    left: 0;
+    top: 0;
+    .black {
+        position: absolute;
+        left: 0;
+        top: 0;
+        background-color: rgba(0, 0, 0, 0.45);
+        z-index: 10000;
+        width: 100%;
+        height: 100%;
+
+        .box {
+            width: max(35%, 300px);
+            min-height: 50px;
+            background-color: #ffe790;
+            position: absolute;
+
+            top: 50%;
+            left: 50%;
+            -ms-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+            border-radius: 10px;
+
+            box-shadow: 0 0 2px white;
+
+            .content {
+                padding: 12.5px;
+            }
+
+            text-align: center;
+
+            p {
+                margin: 10px;
+            }
+
+            textarea {
+                width: calc(100% - 50px);
+                height: 250px;
+                margin-bottom: 10px;
+                background-color: rgba(0, 0, 0, 0.15);
+                outline: none;
+                border: none;
+                color: white;
+                font-size: 17.5px;
+            }
+
+            .title {
+                width: 100%;
+                height: 40px;
+                background-color: #ffdc67;
+                text-align: center;
+                vertical-align: middle;
+                color: black;
+                font-size: 22.5px;
+                line-height: 40px;
+            }
+        }
+    }
+}
+
+textarea[unresizable] {
+    resize: none;
+}
