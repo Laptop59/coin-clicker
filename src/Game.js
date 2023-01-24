@@ -8,12 +8,13 @@ import FallingCoin from "./FallingCoin";
 import SaveManager from "./SaveManager";
 
 class Game {
-    coins = 1e15
+    coins = 0
     totalCoins = 0
     coinsPerClick = 1
     coinsPerSec = 0
     oldTime = +new Date()
     playingMusic = false;
+    startDate = new Date();
 
     ready = 0;
     canvas = null;
@@ -72,13 +73,43 @@ class Game {
         this.saveManager = new SaveManager(this);
         this.loadImages();
 
+        document.querySelector(".saveGame").addEventListener("click", this.saveToStorage.bind(this));
+        document.querySelector(".wipeGame").addEventListener("click", this.wipeSave.bind(this))
+
         document.querySelector(".saveGameText").addEventListener("click", this.saveGame.bind(this, false))
         document.querySelector(".saveGameFile").addEventListener("click", this.saveGame.bind(this, true))
 
         document.querySelector(".loadGameText").addEventListener("click", this.loadGame.bind(this, false))
         document.querySelector(".loadGameFile").addEventListener("click", this.loadGame.bind(this, true))
 
+        document.addEventListener('keydown', e => {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+              
+                this.saveToStorage();
+            }
+        });
+
+        this.saveManager.loadFromStorage();
+
         if (++this.ready > 1) this.doStart();
+    }
+
+    wipeSave() {
+        const elem = document.createElement("div");
+        this.addToElement(elem, "p", "Are you sure you want to <b style=\"color: red;\">WIPE THIS SAVE</b>?")
+        this.showDialog("Wipe Save", elem, ["YES!", "No, cancel this dialog"])
+        .then(opt => {
+            if (!opt) {
+                // Yes
+                this.addToElement(elem, "p", "<br><br><br>This action cannot be undone. Are you actually sure?")
+                this.showDialog("Wipe Save", elem, ["YES", "No, cancel this dialog"]).then(opt => {
+                    if (!opt) {
+                        this.saveManager.wipe();
+                    }
+                })
+            }
+        });
     }
 
     saveGame(file) {
@@ -224,8 +255,8 @@ class Game {
             elem.getElementsByTagName("div")[0].className = "building-" + b.id;
             document.getElementsByClassName("buildings")[0].appendChild(elem);
             elem.addEventListener("click", this.clickBuilding.bind(this, b.id))
-            elem.addEventListener("mouseout", () => this.selectedBuilding = null)
-            elem.addEventListener("mouseover", () => this.selectedBuilding = b.id);
+            elem.addEventListener("mouseleave", () => this.selectedBuilding = null)
+            elem.addEventListener("mouseenter", () => this.selectedBuilding = b.id);
         }
 
         for (let a of achievements) {
@@ -233,8 +264,10 @@ class Game {
             imgdiv.className = "imgdiv achievement-" + a.id;
             imgdiv.appendChild(this.makeIcon(0, 4, 64));
 
-            imgdiv.addEventListener("mouseout", () => this.selectedAchievement = null);
-            imgdiv.addEventListener("mouseover", () => this.selectedAchievement = a.id);
+            imgdiv.addEventListener("mouseleave", () => this.selectedAchievement = null);
+            imgdiv.addEventListener("mouseenter", () => this.selectedAchievement = a.id);
+
+            document.querySelector(".work-wrapper").addEventListener("mouseover", () => this.selectedAchievement = null);
 
             document.querySelector("achievements").appendChild(imgdiv);
         }
@@ -268,10 +301,11 @@ class Game {
         this.registerStat("rawCoinsPerSec", () => this.rawCoinsPerSec);
         this.registerStat("clicks", () => this.clicks);
         this.registerStat("multiplier", () => Math.round(this.multiplier * 100))
+        this.registerStat("achievementMultiplier", () => Math.round(this.achieveMultiplier * 100))
         this.registerStat("unlockedAchievements", () => this.achievements.length);
         this.registerStat("totalAchievements", () => achievements.length);
         this.registerStat("buildings", () => this.buildingsNumber)
-        this.registerStat("achievementMultiplier", () => Math.round(this.achieveMultiplier * 100))
+        this.registerStat("startDate", () => this.formatDate(this.startDate))
     }
 
     playMusic() {
@@ -307,6 +341,9 @@ class Game {
             this.checkForNewAchievements();
             this.updateUpgrades();
         }
+        if (document.querySelector(".autosave").checked && this.ticks % 720 === 0) {
+            this.saveToStorage();
+        }
 
         this.resizeCanvas();
         this.animateCoin(delta);
@@ -331,18 +368,34 @@ class Game {
         requestAnimationFrame(this.tick.bind(this, new Date()));
     }
 
+    saveToStorage() {
+        if (this.saveManager.saveToStorage()) {
+            document.body.setAttribute("saved", "1");
+            setTimeout(() => document.body.setAttribute("saved", "0"), 750)
+        }
+    }
+
     checkForNewAchievements() {
-        for (const a of achievements.filter(a => this.achievements.indexOf(a.id) < 0)) {
-            if (a.goal(this)) {
-                this.achievements.push(a.id);
-                this.achievementPopUp(a);
-            }
+        for (const a of achievements) {
             if (this.achievements.indexOf(a.id) >= 0) {
                 const div = document.querySelector(".achievement-" + a.id);
                 div.removeChild(div.children[0]);
                 div.appendChild(this.makeIcon(...a.icon, 64))
+            } else if (a.goal(this)) {
+                this.achievements.push(a.id);
+                this.achievementPopUp(a);
+            } else {
+                const div = document.querySelector(".achievement-" + a.id);
+                div.removeChild(div.children[0]);
+                div.appendChild(this.makeIcon(0, 4, 64))
             }
         }
+    }
+
+    formatDate(date) {
+        const months = ["January", "Feburary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        return months[date.getMonth()] + " " + date.getDate() + ", " + date.getFullYear();
     }
 
     updateText() {
@@ -545,7 +598,7 @@ class Game {
         const illion = Math.floor(Math.log10(number) / 3);
         const starting = Math.pow(10, illion * 3);
         
-        const float = Math.floor(number / starting * 1000) / 1000;
+        const float = Math.max(Math.floor(number / starting * 1000) / 1000, 1);
 
         return float.toFixed(3) + (br ? "<br><span>" : " ") + this.illionSuffix(illion - 1) + (br ? "</span>" : "");
     }
@@ -661,7 +714,9 @@ class Game {
         this.add(this.coinsPerSec * delta * this.multiplier);
         // Change stats
         for (let stat of Object.entries(this.stat)) {
-            document.querySelector("[stat=" + stat[0] + "]").textContent = this.commify(stat[1](), null, true);
+            let val = stat[1]();
+            if (typeof val !== "string") val = this.commify(val)
+            document.querySelector("[stat=" + stat[0] + "]").textContent = this.commify(val, null, true);
         }
     }
 

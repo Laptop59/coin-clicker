@@ -10,7 +10,6 @@ class SaveManager {
         const obj = this.generateObject(this.game);
         const unText = this.convertToSections(obj);
         const text = this.encrypt(unText);
-        const lol = this.decrypt(text);
 
         return text;
     }
@@ -24,7 +23,21 @@ class SaveManager {
             bought: g.bought,
             achievements: g.achievements,
             total: g.total,
-            clicks: g.clicks
+            clicks: g.clicks,
+            startDate: g.startDate
+        }
+    }
+
+    generateFreshObject() {
+        return {
+            coins: 0,
+            totalCoins: 0,
+            buildings: {},
+            bought: [],
+            achievements: [],
+            total: {},
+            clicks: 0,
+            startDate: new Date()
         }
     }
 
@@ -35,32 +48,37 @@ class SaveManager {
 
             const data = this.convertToObject(string);
 
-            const loadIn = [
-                "coins",
-                "totalCoins",
-                "buildings",
-                "bought",
-                "achievements",
-                "total",
-                "clicks"
-            ]
-
-            const noKey = loadIn.filter(key => {
-                const obj = data[key];
-                return (typeof obj === "number" && isNaN(obj)) || obj === null || obj === undefined
-            });
-            if (noKey.length) {
-                throw new Error("Not every key was found. \n" + noKey.join(", "))
-            }
-
-            for (const key of loadIn) {
-                this.game[key] = data[key];
-            }
+            this.loadObject(data);
 
             return true;
         } catch(e) {
             console.error("Game data couldn't be loaded: ", e)
             return false;
+        }
+    }
+
+    loadObject(data) {
+        const loadIn = [
+            "coins",
+            "totalCoins",
+            "buildings",
+            "bought",
+            "achievements",
+            "total",
+            "clicks",
+            "startDate"
+        ]
+
+        const noKey = loadIn.filter(key => {
+            const obj = data[key];
+            return (typeof obj === "number" && isNaN(obj)) || obj === null || obj === undefined
+        });
+        if (noKey.length) {
+            throw new Error("Not every key was found. \n" + noKey.join(", "))
+        }
+
+        for (const key of loadIn) {
+            this.game[key] = data[key];
         }
     }
 
@@ -74,6 +92,7 @@ class SaveManager {
         text += "a:" + obj.achievements.join(";") + ":";
         text += "t:" + this.keypairsToText(obj.total) + ":";
         text += "cl:" + obj.clicks + ":";
+        text += "s:" + obj.startDate.getTime() + ":";
         
         return text;
     }
@@ -139,6 +158,10 @@ class SaveManager {
                     // Clicks
                     obj.clicks = parseInt(value);
                     this.assert(!isNaN(obj.clicks));
+                    break;
+                case "s":
+                    // Start Date
+                    obj.startDate = new Date(parseInt(value));
                     break;
                 case "":
                     break;
@@ -256,6 +279,27 @@ class SaveManager {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+    }
+
+    saveToStorage() {
+        const code = this.generateText();
+        try {
+            window.localStorage.setItem("coin-clicker.save", code);
+        } catch(e) {
+            return false;
+        }
+        return true;
+    }
+
+    loadFromStorage() {
+        const data = window.localStorage.getItem("coin-clicker.save");
+        if (data) this.loadText(data);
+    }
+
+    wipe() {
+        const obj = this.generateFreshObject();
+        this.loadObject(obj);
+        this.saveToStorage();
     }
 }
 

@@ -223,7 +223,7 @@ const achievements = [
         id: "buildings_1",
         name: "Coinstruction",
         description: "Wait. How do family businesses get constructed?",
-        how: "Have a total of 50 buildings.",
+        how: "Have a total of <b>50</b> buildings.",
         goal: game => game.buildingsNumber >= 50,
         icon: [1, 4]
     },
@@ -231,7 +231,7 @@ const achievements = [
         id: "buildings_2",
         name: "Building with coins",
         description: "WE ARE LITERALLY BUILDING WITH COINS!",
-        how: "Have a total of 100 buildings.",
+        how: "Have a total of <b>100</b> buildings.",
         goal: game => game.buildingsNumber >= 100,
         icon: [2, 4]
     },
@@ -239,7 +239,7 @@ const achievements = [
         id: "buildings_3",
         name: "Will these fall and get demolished?",
         description: "Who knows...",
-        how: "Have a total of 200 buildings.",
+        how: "Have a total of <b>200</b> buildings.",
         goal: game => game.buildingsNumber >= 200,
         icon: [3, 4]
     },
@@ -247,7 +247,7 @@ const achievements = [
         id: "buildings_4",
         name: "An entire coin city",
         description: "It is 5,000 miles away from my location... FAAAA-",
-        how: "Have a total of 300 buildings.",
+        how: "Have a total of <b>300</b> buildings.",
         goal: game => game.buildingsNumber >= 300,
         icon: [4, 4]
     },
@@ -255,7 +255,7 @@ const achievements = [
         id: "buildings_5",
         name: "100% pure coins",
         description: "Hey guys! I recently found this new country, called <i>Coinice</i>! You should check it out!",
-        how: "Have a total of 400 buildings.",
+        how: "Have a total of <b>400</b> buildings.",
         goal: game => game.buildingsNumber >= 400,
         icon: [5, 4]
     },
@@ -263,7 +263,7 @@ const achievements = [
         id: "buildings_6",
         name: "Building is my hobby",
         description: "The buildings are building the buildings which are building buildings which are also building buildings which are themselves also building buildings which are also themselves building buildings which are also themselves building buildings which are also themselves building buildings which are also themselves building buildings which are also building buildings, that are building building builders!",
-        how: "Have a total of 500 buildings.",
+        how: "Have a total of <b>500</b> buildings.",
         goal: game => game.buildingsNumber >= 500,
         icon: [6, 4]
     }
