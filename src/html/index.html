@@ -3,9 +3,13 @@
     <head>
         <title>Coin Clicker</title>
         <script src="./bundle.js" defer></script>
+        <link rel="icon" type="image/x-icon" href="./favicon.ico">
     </head>
 
     <body>
+        <div style="z-index: 1000000" class="loadScreen">
+            <h1>Loading Coin Clicker...</h1>
+        </div>
         <div style="visibility: hidden">
             <audio class="music" controls loop>
                 <source src="./sounds/music.wav" type="audio/wav">

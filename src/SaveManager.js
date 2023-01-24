@@ -1,5 +1,6 @@
 class SaveManager {
     game
+    SUGGESTED = "Coin Clicker Save.txt";
 
     constructor(game) {
         this.game = game;
@@ -27,8 +28,40 @@ class SaveManager {
         }
     }
 
-    loadText() {
-        
+    loadText(code) {
+        if (code === "coinclick") return null;
+        try {
+            const string = this.decrypt(code);
+
+            const data = this.convertToObject(string);
+
+            const loadIn = [
+                "coins",
+                "totalCoins",
+                "buildings",
+                "bought",
+                "achievements",
+                "total",
+                "clicks"
+            ]
+
+            const noKey = loadIn.filter(key => {
+                const obj = data[key];
+                return (typeof obj === "number" && isNaN(obj)) || obj === null || obj === undefined
+            });
+            if (noKey.length) {
+                throw new Error("Not every key was found. \n" + noKey.join(", "))
+            }
+
+            for (const key of loadIn) {
+                this.game[key] = data[key];
+            }
+
+            return true;
+        } catch(e) {
+            console.error("Game data couldn't be loaded: ", e)
+            return false;
+        }
     }
 
     convertToSections(obj) {
@@ -43,6 +76,78 @@ class SaveManager {
         text += "cl:" + obj.clicks + ":";
         
         return text;
+    }
+
+    textToArray(str) {
+        if (!str) return [];
+        return str.split(";")
+    }
+
+    textToKeypairs(str) {
+        if (str === "") return {};
+        // Always {...key: number,...}
+        const fragments = str.split(";");
+        const obj = {};
+        for (let i = 0; i < fragments.length; i += 2) {
+            const [key, value] = [fragments[i], fragments[i + 1]];
+            obj[key] = parseFloat(value);
+        }
+        return obj;
+    }
+
+    assert(bool) {
+        if (!bool) throw new Error("Assertion failed.");
+    }
+
+    convertToObject(str) {
+        const fragments = str.split(":");
+        const obj = {};
+        for (let i = 0; i < fragments.length; i += 2) {
+            const [key, value] = [fragments[i], fragments[i + 1]];
+            switch (key) {
+                case "c":
+                    // Coin amount.
+                    obj.coins = parseFloat(value);
+                    this.assert(!isNaN(obj.coins));
+                    break;
+                case "tc":
+                    // Total coins
+                    obj.totalCoins = parseFloat(value);
+                    this.assert(!isNaN(obj.totalCoins));
+                    break;
+                case "bu":
+                    // Buildings
+                    obj.buildings = this.textToKeypairs(value);
+                    this.assert(obj.buildings);
+                    break;
+                case "bo":
+                    // Bought upgrades
+                    obj.bought = this.textToArray(value);
+                    this.assert(Array.isArray(obj.bought));
+                    break;
+                case "a":
+                    // Achievements
+                    obj.achievements = this.textToArray(value);
+                    this.assert(Array.isArray(obj.achievements));
+                    break;
+                case "t":
+                    // Total coins (from buildings)
+                    obj.total = this.textToKeypairs(value);
+                    this.assert(obj.total);
+                    break;
+                case "cl":
+                    // Clicks
+                    obj.clicks = parseInt(value);
+                    this.assert(!isNaN(obj.clicks));
+                    break;
+                case "":
+                    break;
+                default:
+                    // Invalid ID found.
+                    throw new Error("Invalid ID " + key + " found.")
+            }
+        }
+        return obj;
     }
 
     keypairsToText(obj) {
@@ -82,7 +187,75 @@ class SaveManager {
             }
 
             return atob(decrypted);
+        } else {
+            return null;
         }
+    }
+
+    loadFromFile() {
+        const input = document.createElement("input");
+        input.setAttribute("type", "file");
+        input.setAttribute("accept", ".txt");
+        input.addEventListener('change', async () => {
+            const {files} = input;
+
+            if (files.length) {
+                const file = files[0];
+
+                const text = await file.text();
+                
+                // We can attempt to load it.
+                this.loadText(text);
+            }
+        });
+
+        input.click();
+    }
+
+    async saveToFile(code) {
+        // We can use the File System API if available.
+        if (window.showSaveFilePicker) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: this.SUGGESTED,
+                    types: [
+                        {
+                            description: "Coin Clicker Save",
+                            accept: {
+                                "text/plain": [".txt"]
+                            }
+                        }
+                    ]
+                })
+
+                const writable = await handle.createWritable();
+                writable.write(code);
+                writable.close();
+            } catch(e) {
+                if (e instanceof DOMException && e.message.includes("request is not allowed")) {
+                    this.saveToDownloads(code);
+                }
+                console.error("Could not save via File System API", e);
+            }
+        } else {
+            this.saveToDownloads(code);
+        }
+    }
+
+    saveToDownloads(code) {
+        const blob = new Blob(code.split("\n"), {
+            type: 'text/plain'
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        // the filename you want
+        a.download = this.SUGGESTED;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
     }
 }
 

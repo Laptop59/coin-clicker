@@ -84,17 +84,53 @@ class Game {
     saveGame(file) {
         const code = this.saveManager.generateText();
         
-        const saveDiv = document.createElement("div");
-        this.addToElement(saveDiv, "p", "Your save code for Coin Clicker:<br>");
+        if (file) {
+            this.saveManager.saveToFile(code);
+        } else {
+            const saveDiv = document.createElement("div");
+            this.addToElement(saveDiv, "p", "Your save code for Coin Clicker:<br>");
 
-        const textarea = this.addToElement(saveDiv, "textarea");
-        textarea.setAttribute("readonly", "true");
-        textarea.setAttribute("unresizable", "true");
+            const textarea = this.addToElement(saveDiv, "textarea");
+            textarea.setAttribute("readonly", "true");
+            textarea.setAttribute("unresizable", "true");
 
-        textarea.textContent = code;
+            textarea.value = code;
 
-        this.addToElement(saveDiv, "br")
-        this.showDialog("Save Code", saveDiv);
+            this.addToElement(saveDiv, "br")
+            this.showDialog("Save Code", saveDiv);
+        }
+    }
+
+    async loadGame(file) {
+        if (file) {
+            this.saveManager.loadFromFile();
+        } else {
+            const loadDiv = document.createElement("div");
+            this.addToElement(loadDiv, "p", "Input your save code for Coin Clicker:<br>");
+
+            const textarea = this.addToElement(loadDiv, "textarea");
+            textarea.setAttribute("unresizable", "true");
+
+            this.addToElement(loadDiv, "br")
+            
+            const error = this.addToElement(loadDiv, "span");
+            error.setAttribute("color", "red");
+
+            while (true) {
+                const index = await this.showDialog("Load Code", loadDiv, ["Load", "Cancel"], i => i === 1)
+                if (index === 0) {
+                    // Load
+                    const result = this.saveManager.loadText(textarea.value);
+                    if (result) {
+                        document.querySelector(".dialog").style.visibility = "hidden";
+                        break;
+                    } else {
+                        document.querySelector(".dialog span[color=\"red\"]").innerHTML = 
+                        (result === null ? "Haha. Nice try.<br>" : "Save code is invalid.<br>");
+                    }
+                } else break;
+            }
+        }
     }
 
     addToElement(div, tagName, innerHTML = "") {
@@ -104,16 +140,22 @@ class Game {
         return element;
     }
 
-    showDialog(title, element, buttons = ["OK"]) {
+    showDialog(title, element, buttons = ["OK"], stay) {
         return new Promise(resolve => {
+            for (let oldButton of document.querySelectorAll(".dialogButton")) {
+                oldButton.parentElement.removeChild(oldButton);
+            }
             for (let index = 0; index < buttons.length; index++) {
                 const text = buttons[index];
                 const button = document.createElement("button");
                 button.textContent = text;
-                button.addEventListener("click", () => {
-                    document.querySelector(".dialog").style.visibility = "hidden";
+                button.className = "dialogButton"
+                button.onclick = () => {
+                    if (!stay || stay(index)) {
+                        document.querySelector(".dialog").style.visibility = "hidden";
+                    }
                     resolve(index)
-                })
+                };
                 element.append(button);
             }
 
@@ -130,10 +172,6 @@ class Game {
             document.querySelector(".dialog .box").appendChild(element);
             document.querySelector(".dialog").style.visibility = "visible";
         });
-    }
-
-    loadGame(file) {
-
     }
 
     getCurrentMultiplier() {
@@ -238,8 +276,10 @@ class Game {
 
     playMusic() {
         if (!this.playingMusic) {
-            this.playingMusic = true;
-            document.querySelector('.music').play()
+            document.querySelector('.music')
+            .play()
+            .then(() => this.playingMusic = true)
+            .catch(() => {})
         }
     }
 
@@ -253,6 +293,8 @@ class Game {
     }
 
     tick(time) {
+        this.playMusic();
+
         this.ticks++
         const delta = time - this.oldTime;
         this.timeSinceCoinSpawn += delta;
@@ -261,7 +303,10 @@ class Game {
         this.updateVariables(delta / 1000);
         this.updateText();
 
-        if (this.ticks % 3 === 0) this.updateUpgrades();
+        if (this.ticks % 3 === 0) {
+            this.checkForNewAchievements();
+            this.updateUpgrades();
+        }
 
         this.resizeCanvas();
         this.animateCoin(delta);
@@ -276,7 +321,11 @@ class Game {
             this.timeSinceCoinSpawn = 0;
         }
 
-        this.checkForNewAchievements();
+        if (this.ticks <= 1) {
+            setTimeout((() =>
+                document.querySelector(".loadScreen").className = "loadScreen loaded")
+            , 1000);
+        }
 
         // Again
         requestAnimationFrame(this.tick.bind(this, new Date()));
@@ -463,8 +512,6 @@ class Game {
     }
 
     coinClick() {
-        this.playMusic();
-
         this.coinSize = 0.75 * 1.5;
         this.add(this.coinsPerClick * this.multiplier);
         this.clicks++;
