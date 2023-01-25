@@ -1,7 +1,9 @@
+import Effect from "./Effect";
+
 class SaveManager {
     game
     SUGGESTED = "Coin Clicker Save.txt";
-
+    encryptedMode = true
     constructor(game) {
         this.game = game;
     }
@@ -25,8 +27,17 @@ class SaveManager {
             total: g.total,
             clicks: g.clicks,
             startDate: g.startDate,
-            coinsDestroyed: g.coinsDestroyed
+            coinsDestroyed: g.coinsDestroyed,
+            effects: this.simplifyEffects(g.effects)
         }
+    }
+
+    simplifyEffects(effects) {
+        return effects.map(e => ({id: e.type, duration: e.duration}));
+    }
+
+    desimplifyEffects(effects) {
+        return effects.map(e => new Effect(e.id, e.duration, this.game))
     }
 
     generateFreshObject() {
@@ -39,7 +50,8 @@ class SaveManager {
             total: {},
             clicks: 0,
             startDate: new Date(),
-            coinsDestroyed: 0
+            coinsDestroyed: 0,
+            effects: []
         }
     }
 
@@ -80,7 +92,15 @@ class SaveManager {
         }
 
         for (const key of Object.keys(data)) {
-            this.game[key] = data[key];
+            switch (key) {
+                case "effects":
+                    for (const e of data.effects) {
+                        this.game.addEffect(e.id, e.duration);
+                    }
+                    break;
+                default:
+                    this.game[key] = data[key];
+            }
         }
     }
 
@@ -96,6 +116,7 @@ class SaveManager {
         text += "cl:" + obj.clicks + ":";
         text += "s:" + obj.startDate.getTime() + ":";
         text += "cd:" + obj.coinsDestroyed + ":";
+        text += "e:" + obj.effects.map(e => e.id + ";" + e.duration + ";").join(";") + ":";
         
         return text;
     }
@@ -108,10 +129,11 @@ class SaveManager {
     textToKeypairs(str) {
         if (str === "") return {};
         // Always {...key: number,...}
-        const fragments = str.split(";");
+        const fragments = str.split(";").slice(0, -2);
         const obj = {};
         for (let i = 0; i < fragments.length; i += 2) {
             const [key, value] = [fragments[i], fragments[i + 1]];
+            if (!key) continue;
             obj[key] = parseFloat(value);
         }
         return obj;
@@ -170,6 +192,9 @@ class SaveManager {
                     // Coins destroyed
                     obj.coinsDestroyed = parseInt(value);
                     break;
+                case "e":
+                    // Effects
+                    obj.effects = this.textToEffects(value);
                 case "":
                     break;
                 default:
@@ -180,11 +205,25 @@ class SaveManager {
         return obj;
     }
 
+    textToEffects(str) {
+        const fragments = str.split(";");
+        let effects = [];
+
+        for (let i = 0; i < fragments.length; i += 2) {
+            const [id, duration] = [fragments[i], fragments[i + 1]];
+            if (!id) continue;
+            effects.push({id, duration: parseFloat(duration)});
+        }
+
+        return effects;
+    }
+
     keypairsToText(obj) {
         return Object.entries(obj).map(([k, v]) => k + ";" + v + ";").join("");
     }
 
     encrypt(text) {
+        if (!this.encryptedMode) return text;
         const base64 = btoa(text);
 
         // Spec:
@@ -204,6 +243,7 @@ class SaveManager {
     }
 
     decrypt(text) {
+        if (!this.encryptedMode) return text;
         if (text.startsWith("coin") && text.endsWith("click")) {
             const start = text.slice(4, -5);
             let decrypted = "";

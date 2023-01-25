@@ -36,6 +36,7 @@ class Game {
     selectedBuilding = null;
     selectedUpgrade = null;
     selectedAchievement = null;
+    selectedEffect = null;
 
     mouseX = 0;
     mouseY = 0;
@@ -57,6 +58,7 @@ class Game {
     clicks = 0
 
     effects = [];
+    queuedEffects = [];
 
     selectedTab = 0;
 
@@ -78,6 +80,8 @@ class Game {
         this.saveManager = new SaveManager(this);
         this.coinImager = new CoinImager();
         this.loadImages();
+        this.setupData();
+        this.registerStats();
 
         document.querySelector(".saveGame").addEventListener("click", this.saveToStorage.bind(this));
         document.querySelector(".wipeGame").addEventListener("click", this.wipeSave.bind(this))
@@ -99,6 +103,86 @@ class Game {
         this.saveManager.loadFromStorage();
 
         if (++this.ready > 1) this.doStart();
+    }
+
+    setupData() {
+        document.getElementsByClassName("coins-header")[0].getElementsByTagName("div")[0].appendChild(this.makeIcon(0, 0, 32));
+        document.getElementsByClassName("cpc-header")[0].getElementsByTagName("div")[0].appendChild(this.makeIcon(0, 0, 24));
+        document.getElementsByClassName("cps-header")[0].getElementsByTagName("div")[0].appendChild(this.makeIcon(0, 0, 24));
+        document.querySelector(".upgrade-tooltip .cost").appendChild(this.makeIcon(0, 0, 20));
+        document.querySelector(".upgrade-tooltip .cost").appendChild(document.createElement("span"));
+
+        document.querySelector('.tab-wrapper button[type="stats"]').addEventListener("click", this.setSelectedTab.bind(this, 0));
+        document.querySelector('.tab-wrapper button[type="options"]').addEventListener("click", this.setSelectedTab.bind(this, 1));
+
+        for (let u of upgrades.sort((a, b) => a.cost - b.cost)) {
+            const elem = this.generateUpgrade(u);
+            document.getElementsByClassName("upgrades")[0].appendChild(elem);
+            elem.addEventListener("click", this.clickUpgrade.bind(this, u.id));
+            elem.addEventListener("mouseout", () => this.selectedUpgrade = null)
+            elem.addEventListener("mouseover", () => this.selectedUpgrade = u.id);
+        }
+
+        for (let b of buildings) {
+            // Create an element.
+            const elem = this.buildingElement(b);
+            elem.getElementsByTagName("div")[0].className = "building-" + b.id;
+            document.getElementsByClassName("buildings")[0].appendChild(elem);
+            elem.addEventListener("click", this.clickBuilding.bind(this, b.id))
+            elem.addEventListener("mouseleave", () => this.selectedBuilding = null)
+            elem.addEventListener("mouseenter", () => this.selectedBuilding = b.id);
+        }
+
+        for (let a of achievements) {
+            const imgdiv = document.createElement("div");
+            imgdiv.className = "imgdiv achievement-" + a.id;
+            imgdiv.appendChild(this.makeIcon(0, 4, 64));
+
+            imgdiv.addEventListener("mouseleave", () => this.selectedAchievement = null);
+            imgdiv.addEventListener("mouseenter", () => this.selectedAchievement = a.id);
+
+            document.querySelector(".work-wrapper").addEventListener("mouseover", () => this.selectedAchievement = null);
+
+            document.querySelector("achievements").appendChild(imgdiv);
+        }
+
+        for (let button of document.querySelectorAll(".buy-bar button")) {
+            button.addEventListener("click", this.changeBuyMode.bind(this, +button.getAttribute("value")))
+        }
+
+        // Easy to use elements
+        // <coin></coin> = coin icon
+        // <icon x="X" y="Y"></icon> = other icon
+        for (let coin of document.querySelectorAll("coin")) {
+            coin.appendChild(this.makeIcon(0, 0, this.iconSize))
+        }
+
+        for (let icon of document.querySelectorAll("icon")) {
+            icon.appendChild(this.makeIcon(+icon.getAttribute("x"), +icon.getAttribute("y"), this.iconSize))
+        }
+
+        this.changeBuyMode(1);
+
+        try {
+            this.playMusic()
+        } catch {
+            console.warn("Will attempt to play music after coin click.")
+        }
+    }
+
+    registerStats() {
+        this.registerStat("ownedCoins", () => this.coins);
+        this.registerStat("totalCoins", () => this.totalCoins);
+        this.registerStat("rawCoinsPerClick", () => this.rawCoinsPerClick);
+        this.registerStat("rawCoinsPerSec", () => this.rawCoinsPerSec);
+        this.registerStat("clicks", () => this.clicks);
+        this.registerStat("multiplier", () => Math.round(this.multiplier * 100))
+        this.registerStat("achievementMultiplier", () => Math.round(this.achieveMultiplier * 100))
+        this.registerStat("unlockedAchievements", () => this.achievements.length);
+        this.registerStat("totalAchievements", () => achievements.length);
+        this.registerStat("buildings", () => this.buildingsNumber);
+        this.registerStat("startDate", () => this.formatDate(this.startDate));
+        this.registerStat("coinsDestroyed", () => this.coinsDestroyed)
     }
 
     wipeSave() {
@@ -240,82 +324,6 @@ class Game {
     loadImages() {
         this.images.big_coin = new Image();
         this.images.big_coin.src = BIG_COIN_SRC;
-
-        document.getElementsByClassName("coins-header")[0].getElementsByTagName("div")[0].appendChild(this.makeIcon(0, 0, 32));
-        document.getElementsByClassName("cpc-header")[0].getElementsByTagName("div")[0].appendChild(this.makeIcon(0, 0, 24));
-        document.getElementsByClassName("cps-header")[0].getElementsByTagName("div")[0].appendChild(this.makeIcon(0, 0, 24));
-        document.querySelector(".upgrade-tooltip .cost").appendChild(this.makeIcon(0, 0, 20));
-        document.querySelector(".upgrade-tooltip .cost").appendChild(document.createElement("span"));
-
-        document.querySelector('.tab-wrapper button[type="stats"]').addEventListener("click", this.setSelectedTab.bind(this, 0));
-        document.querySelector('.tab-wrapper button[type="options"]').addEventListener("click", this.setSelectedTab.bind(this, 1));
-
-        for (let u of upgrades.sort((a, b) => a.cost - b.cost)) {
-            const elem = this.generateUpgrade(u);
-            document.getElementsByClassName("upgrades")[0].appendChild(elem);
-            elem.addEventListener("click", this.clickUpgrade.bind(this, u.id));
-            elem.addEventListener("mouseout", () => this.selectedUpgrade = null)
-            elem.addEventListener("mouseover", () => this.selectedUpgrade = u.id);
-        }
-
-        for (let b of buildings) {
-            // Create an element.
-            const elem = this.buildingElement(b);
-            elem.getElementsByTagName("div")[0].className = "building-" + b.id;
-            document.getElementsByClassName("buildings")[0].appendChild(elem);
-            elem.addEventListener("click", this.clickBuilding.bind(this, b.id))
-            elem.addEventListener("mouseleave", () => this.selectedBuilding = null)
-            elem.addEventListener("mouseenter", () => this.selectedBuilding = b.id);
-        }
-
-        for (let a of achievements) {
-            const imgdiv = document.createElement("div");
-            imgdiv.className = "imgdiv achievement-" + a.id;
-            imgdiv.appendChild(this.makeIcon(0, 4, 64));
-
-            imgdiv.addEventListener("mouseleave", () => this.selectedAchievement = null);
-            imgdiv.addEventListener("mouseenter", () => this.selectedAchievement = a.id);
-
-            document.querySelector(".work-wrapper").addEventListener("mouseover", () => this.selectedAchievement = null);
-
-            document.querySelector("achievements").appendChild(imgdiv);
-        }
-
-        for (let button of document.querySelectorAll(".buy-bar button")) {
-            button.addEventListener("click", this.changeBuyMode.bind(this, +button.getAttribute("value")))
-        }
-
-        // Easy to use elements
-        // <coin></coin> = coin icon
-        // <icon x="X" y="Y"></icon> = other icon
-        for (let coin of document.querySelectorAll("coin")) {
-            coin.appendChild(this.makeIcon(0, 0, this.iconSize))
-        }
-
-        for (let icon of document.querySelectorAll("icon")) {
-            icon.appendChild(this.makeIcon(+icon.getAttribute("x"), +icon.getAttribute("y"), this.iconSize))
-        }
-
-        this.changeBuyMode(1);
-
-        try {
-            this.playMusic()
-        } catch {
-            console.warn("Will attempt to play music after coin click.")
-        }
-
-        this.registerStat("ownedCoins", () => this.coins);
-        this.registerStat("totalCoins", () => this.totalCoins);
-        this.registerStat("rawCoinsPerClick", () => this.rawCoinsPerClick);
-        this.registerStat("rawCoinsPerSec", () => this.rawCoinsPerSec);
-        this.registerStat("clicks", () => this.clicks);
-        this.registerStat("multiplier", () => Math.round(this.multiplier * 100))
-        this.registerStat("achievementMultiplier", () => Math.round(this.achieveMultiplier * 100))
-        this.registerStat("unlockedAchievements", () => this.achievements.length);
-        this.registerStat("totalAchievements", () => achievements.length);
-        this.registerStat("buildings", () => this.buildingsNumber);
-        this.registerStat("startDate", () => this.formatDate(this.startDate));
-        this.registerStat("coinsDestroyed", () => this.coinsDestroyed)
     }
 
     playMusic() {
@@ -481,6 +489,25 @@ class Game {
             achievementTooltip.style.visibility = "hidden";
         }
 
+        const effectTooltip = document.querySelector(".effect-tooltip");
+        if (this.selectedEffect) {
+            const e = this.effects.find(e => e.type === this.selectedEffect);
+
+            if (e) {
+                effectTooltip.style.left = (this.mouseX + 25) + "px";
+
+                effectTooltip.style.visibility = "visible";
+                effectTooltip.style.top = (this.mouseY - 25 - effectTooltip.clientHeight) + "px";
+
+                const meta = e.getMeta();
+                effectTooltip.querySelector("h2").textContent = meta[0];
+                effectTooltip.querySelector("p").innerHTML = meta[1];
+            } else
+                effectTooltip.style.visibility = "hidden";
+        } else {
+            effectTooltip.style.visibility = "hidden";
+        }
+
         if (this.selectedUpgrade) {
             const id = upgrades.findIndex(b => b.id === this.selectedUpgrade);
             const afford = this.coins >= upgrades[id].cost;
@@ -541,6 +568,14 @@ class Game {
         ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
         this.animateFallingCoins(delta);
         ctx.drawImage(this.images.big_coin, (width - WW) / 2, (height - HH) / 2, WW, HH);
+
+        if (this.boostMultiplier > 1) {
+            this.canvas.setAttribute("bg", "1");
+        } else if (this.boostMultiplier < 1) {
+            this.canvas.setAttribute("bg", "-1");
+        } else {
+            this.canvas.setAttribute("bg", "0");
+        }
     }
 
     animateFallingCoins(delta) {
@@ -712,11 +747,33 @@ class Game {
         for (const effect of this.effects) {
             if (effect.expired) {
                 this.effects.splice(index, 1);
+                document.querySelector(".effects >div").removeChild(document.querySelector(".effect-" + effect.type))
             } else {
-                effect.tick(delta)
+                effect.tick(delta);
             }
             index++;
         }
+    }
+
+    addEffect(id, duration = null) {
+        const newEffect = new Effect(id, duration, this);
+
+        for (let i = 0; i < this.effects.length; i++) {
+            let effect = this.effects[i];
+            if (effect.type === id) {
+                effect = newEffect;
+                return;
+            }
+        }
+
+        this.effects.push(newEffect);
+        const effectDiv = document.createElement("div");
+        effectDiv.appendChild(this.makeIcon(...newEffect.getIcon(), 48))
+        effectDiv.setAttribute("buff", Math.sign(newEffect.getEffect() - 1))
+        effectDiv.addEventListener("mouseenter", () => this.selectedEffect = newEffect.type);
+        effectDiv.addEventListener("mouseleave", () => this.selectedEffect = null);
+        effectDiv.className = "effect-" + id;
+        document.querySelector(".effects >div").appendChild(effectDiv);
     }
 
     updateVariables(delta) {
@@ -924,20 +981,6 @@ class Game {
         } else {
             return elem;
         }
-    }
-
-    addEffect(id, duration = null) {
-        const newEffect = new Effect(id, duration, this);
-
-        for (let i = 0; i < this.effects.length; i++) {
-            let effect = this.effects[i];
-            if (effect.type === id) {
-                effect = newEffect;
-                return;
-            }
-        }
-
-        this.effects.push(newEffect);
     }
 }
 

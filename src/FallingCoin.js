@@ -66,7 +66,11 @@ class FallingCoin {
 
         switch (this.id) {
             case "orange":
-                this.game.addEffect("frenzy", 30);
+                if (Math.random() < 0.05) {
+                    this.game.addEffect("superFrenzy", 20)
+                } else {
+                    this.game.addEffect("frenzy", 30)
+                }
                 break;
         }
     }

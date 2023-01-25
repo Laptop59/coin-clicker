@@ -70,6 +70,15 @@ h1 {
         position: absolute;
         left: 0;
         top: 0;
+
+        &[bg="1"] {
+            transition-duration: 1s;
+            background-color: #fff06b;
+        }
+        &[bg="-1"] {
+            transition-duration: 1.5s;
+            background-color: #ff816b;
+        }
     }
 
     .header {
@@ -660,4 +669,56 @@ input[type="checkbox"] {
     accent-color: #fff6c3;
     outline: 1.5px solid black;
     margin-right: 10px;
+}
+
+.effects {
+    left: 0;
+    bottom: 0;
+    width: $CW;
+    position: absolute;
+
+    >div {
+        width: 100%;
+        height: 100%;
+        >div {
+            width: 48px;
+            height: 48px;
+            border: 4px rgb(0, 0, 0) solid;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            display: inline-block;
+            z-index: 7;
+
+            &[buff="1"] {
+                animation: buff 3s ease infinite;
+                background: linear-gradient(-55deg, transparent, #ffe07c, transparent, #fffd7b);
+            }
+            &[buff="-1"] {
+                animation: buff 3s ease infinite;
+                background: linear-gradient(-55deg, transparent, #ff7c7c, transparent, #ffa599);
+            }
+        }
+    }
+}
+
+.effect-tooltip {
+    width: 325px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 20px;
+    border: 4px solid rgba(0, 0, 0, 0.75);
+    padding-left: 10px;
+    color: white;
+    position: absolute;
+}
+
+@keyframes buff {
+    0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
 }
