@@ -266,6 +266,31 @@ const achievements = [
         how: "Have a total of <b>500</b> buildings.",
         goal: game => game.buildingsNumber >= 500,
         icon: [6, 4]
+    },
+    // Destroy
+    {
+        id: "destroy_1",
+        name: "What the fell?",
+        description: "What happened to that coin???",
+        how: "Destroy <b>a falling coin</b>.",
+        goal: game => game.coinsDestroyed >= 1,
+        icon: [0, 0]
+    },
+    {
+        id: "destroy_2",
+        name: "Just stop!",
+        description: "You're being a menace to these coins.<br><b>NEWS:</b> 15 coins missing without a trace!",
+        how: "Destroy <b>15 falling coins</b>.",
+        goal: game => game.coinsDestroyed >= 15,
+        icon: [2, 0]
+    },
+    {
+        id: "destroy_3",
+        name: "Serial destroyer",
+        description: "Thankfully you're not going to get arrested...",
+        how: "Destroy <b>75 falling coins</b>.",
+        goal: game => game.coinsDestroyed >= 75,
+        icon: [4, 0]
     }
 ]
 

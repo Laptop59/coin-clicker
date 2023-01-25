@@ -24,7 +24,8 @@ class SaveManager {
             achievements: g.achievements,
             total: g.total,
             clicks: g.clicks,
-            startDate: g.startDate
+            startDate: g.startDate,
+            coinsDestroyed: g.coinsDestroyed
         }
     }
 
@@ -37,7 +38,8 @@ class SaveManager {
             achievements: [],
             total: {},
             clicks: 0,
-            startDate: new Date()
+            startDate: new Date(),
+            coinsDestroyed: 0
         }
     }
 
@@ -77,7 +79,7 @@ class SaveManager {
             throw new Error("Not every key was found. \n" + noKey.join(", "))
         }
 
-        for (const key of loadIn) {
+        for (const key of Object.keys(data)) {
             this.game[key] = data[key];
         }
     }
@@ -93,6 +95,7 @@ class SaveManager {
         text += "t:" + this.keypairsToText(obj.total) + ":";
         text += "cl:" + obj.clicks + ":";
         text += "s:" + obj.startDate.getTime() + ":";
+        text += "cd:" + obj.coinsDestroyed + ":";
         
         return text;
     }
@@ -120,7 +123,7 @@ class SaveManager {
 
     convertToObject(str) {
         const fragments = str.split(":");
-        const obj = {};
+        const obj = this.generateFreshObject();
         for (let i = 0; i < fragments.length; i += 2) {
             const [key, value] = [fragments[i], fragments[i + 1]];
             switch (key) {
@@ -162,6 +165,10 @@ class SaveManager {
                 case "s":
                     // Start Date
                     obj.startDate = new Date(parseInt(value));
+                    break;
+                case "cd":
+                    // Coins destroyed
+                    obj.coinsDestroyed = parseInt(value);
                     break;
                 case "":
                     break;

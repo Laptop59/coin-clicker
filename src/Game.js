@@ -1,4 +1,3 @@
-import COIN_SRC from "./images/big_coin.png";
 import BIG_COIN_SRC from "./images/coin_button.png";
 import BLANK_SRC from "./images/blank_icon.png";
 import buildings from "./Buildings";
@@ -6,6 +5,8 @@ import upgrades from "./Upgrades";
 import achievements from "./Achievements";
 import FallingCoin from "./FallingCoin";
 import SaveManager from "./SaveManager";
+import CoinImager from "./CoinImager";
+import Effect from "./Effect";
 
 class Game {
     coins = 0
@@ -15,6 +16,7 @@ class Game {
     oldTime = +new Date()
     playingMusic = false;
     startDate = new Date();
+    coinsDestroyed = 0;
 
     ready = 0;
     canvas = null;
@@ -54,6 +56,8 @@ class Game {
     stat = {}
     clicks = 0
 
+    effects = [];
+
     selectedTab = 0;
 
     multiplier = 1;
@@ -64,6 +68,7 @@ class Game {
     coinSpawnInterval = 1000;
 
     saveManager
+    coinImager
 
     constructor(save) {
         this.canvas = document.getElementsByClassName("canvas")[0];
@@ -71,6 +76,7 @@ class Game {
         document.addEventListener("mousemove", this.setMouse.bind(this))
 
         this.saveManager = new SaveManager(this);
+        this.coinImager = new CoinImager();
         this.loadImages();
 
         document.querySelector(".saveGame").addEventListener("click", this.saveToStorage.bind(this));
@@ -212,12 +218,18 @@ class Game {
             this.achieveMultiplier
         ];
         this.unboostedMultiplier = m.reduce((a, b) => a * b);
-        const bm = [
-            1
-        ];
-        this.boostMultiplier = bm.reduce((a, b) => a * b);
+
+        this.boostMultiplier = this.getBoost();
         this.multiplier = this.unboostedMultiplier * this.boostMultiplier;
         return this.multiplier;
+    }
+
+    getBoost() {
+        let boost = 1;
+        for (const effect of this.effects) {
+            boost *= effect.getEffect();
+        }
+        return boost;
     }
 
     setMouse(e) {
@@ -228,9 +240,6 @@ class Game {
     loadImages() {
         this.images.big_coin = new Image();
         this.images.big_coin.src = BIG_COIN_SRC;
-
-        this.images.coin = new Image();
-        this.images.coin.src = COIN_SRC;
 
         document.getElementsByClassName("coins-header")[0].getElementsByTagName("div")[0].appendChild(this.makeIcon(0, 0, 32));
         document.getElementsByClassName("cpc-header")[0].getElementsByTagName("div")[0].appendChild(this.makeIcon(0, 0, 24));
@@ -304,8 +313,9 @@ class Game {
         this.registerStat("achievementMultiplier", () => Math.round(this.achieveMultiplier * 100))
         this.registerStat("unlockedAchievements", () => this.achievements.length);
         this.registerStat("totalAchievements", () => achievements.length);
-        this.registerStat("buildings", () => this.buildingsNumber)
-        this.registerStat("startDate", () => this.formatDate(this.startDate))
+        this.registerStat("buildings", () => this.buildingsNumber);
+        this.registerStat("startDate", () => this.formatDate(this.startDate));
+        this.registerStat("coinsDestroyed", () => this.coinsDestroyed)
     }
 
     playMusic() {
@@ -353,7 +363,7 @@ class Game {
 
         if (this.timeSinceCoinSpawn > this.coinSpawnInterval) {
             // Spawn a coin.
-            this.fallingCoins.push(new FallingCoin(this.canvas, this.images.coin))
+            this.fallingCoins.push(new FallingCoin(this.canvas, this.coinImager, this))
             // set coins spawn to 0 instead of reducing it
             this.timeSinceCoinSpawn = 0;
         }
@@ -536,15 +546,22 @@ class Game {
     animateFallingCoins(delta) {
         for (let coinIndex in this.fallingCoins) {
             let coin = this.fallingCoins[coinIndex]
-            coin.draw();
-            coin.fall(delta);
-            // If too far down, delete the coin.
-            if (coin.y > this.canvas.height + 200) this.fallingCoins.splice(coinIndex, 1);
+            if (coin.destroy === 1) {
+                // Remove
+                this.fallingCoins.splice(coinIndex, 1);
+            } else {
+                coin.draw();
+                coin.fall(delta);
+                // If too far down, delete the coin.
+                if (coin.y > this.canvas.height + 200) this.fallingCoins.splice(coinIndex, 1);
+            }
         }
     }
 
     canvasClick(e) {
         if (this.ready < 2) return;
+
+
         const {clientX: x, clientY: y} = e;
         // It already lines up.
         // Calculate our offsets.
@@ -555,7 +572,16 @@ class Game {
         const B = this.images.big_coin.height / 2 * this.coinSize;
         
         if (X*X/(B*B) + Y*Y/(A*A) <= 1) {
-            this.coinClick();
+            return this.coinClick();
+        }
+
+        const arr = Object.assign([], this.fallingCoins);
+        for (const coin of arr.reverse()) {
+            if (coin.isTouching(x, y)) {
+                this.coinsDestroyed++;
+                coin.click();
+                return;
+            }
         }
     }
 
@@ -681,10 +707,23 @@ class Game {
         }
     }
 
+    setBoost(delta) {
+        let index = 0;
+        for (const effect of this.effects) {
+            if (effect.expired) {
+                this.effects.splice(index, 1);
+            } else {
+                effect.tick(delta)
+            }
+            index++;
+        }
+    }
+
     updateVariables(delta) {
         this.coinsPerClick = 1;
         this.coinsPerSec = 0;
         this.getCurrentMultiplier();
+        this.setBoost(delta);
         // Look through every building.
         for (let building of buildings) {
             const amount = this.buildings[building.id] || 0;
@@ -885,6 +924,20 @@ class Game {
         } else {
             return elem;
         }
+    }
+
+    addEffect(id, duration = null) {
+        const newEffect = new Effect(id, duration, this);
+
+        for (let i = 0; i < this.effects.length; i++) {
+            let effect = this.effects[i];
+            if (effect.type === id) {
+                effect = newEffect;
+                return;
+            }
+        }
+
+        this.effects.push(newEffect);
     }
 }
 
