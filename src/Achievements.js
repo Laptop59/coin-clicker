@@ -287,7 +287,7 @@ const achievements = [
     {
         id: "destroy_3",
         name: "Serial destroyer",
-        description: "Thankfully you're not going to get arrested...",
+        description: "Oh well, you probably produce more coins than what you destroy.",
         how: "Destroy <b>75 falling coins</b>.",
         goal: game => game.coinsDestroyed >= 75,
         icon: [4, 0]

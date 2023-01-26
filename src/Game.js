@@ -588,7 +588,10 @@ class Game {
                 coin.draw();
                 coin.fall(delta);
                 // If too far down, delete the coin.
-                if (coin.y > this.canvas.height + 200) this.fallingCoins.splice(coinIndex, 1);
+                if (coin.y > this.canvas.height + 200) {
+                    this.fallingCoins[coinIndex] = null;
+                    this.fallingCoins.splice(coinIndex, 1);
+                }
             }
         }
     }
@@ -671,7 +674,7 @@ class Game {
             return ["million", "billion", "trillion", "quadrillion", "quintillion", "sextillion", "septillion", "octillion", "nonillion"][illion - 1];
         }
         let unit = ["", "un", "duo", "tre", "quattuor", "quin", "sex", "septen", "octo", "novem"][illion % 10];
-        let ten = ["", "dec", "vigint", "trigint", "quadragint", "quinquagint", "sexagint", "septuagint", "octoginta", "nonaginta"][Math.floor(illion / 10) % 10];
+        let ten = ["", "dec", "vigint", "trigint", "quadragint", "quinquagint", "sexagint", "septuagint", "octogint", "nonagint"][Math.floor(illion / 10) % 10];
         return unit + ten + "illion";
     }
 
@@ -747,9 +750,22 @@ class Game {
         for (const effect of this.effects) {
             if (effect.expired) {
                 this.effects.splice(index, 1);
-                document.querySelector(".effects >div").removeChild(document.querySelector(".effect-" + effect.type))
+
+                let elem;
+                while (elem = document.querySelector(".effect-" + effect.type))
+                    document.querySelector(".effects >div").removeChild(elem)
             } else {
                 effect.tick(delta);
+                const div = document.querySelector(".effect-" + effect.type);
+                const ctx = div.querySelector("canvas").getContext("2d");
+                ctx.clearRect(0, 0, 48, 48);
+                ctx.fillStyle = "rgba(75, 75, 0, 0.4)";
+                ctx.beginPath();
+                ctx.moveTo(24, 24);
+                ctx.arc(24, 24, 24 * 1.5, Math.PI * -0.5, (-2 * effect.percentageDuration - 0.5) * Math.PI, true)
+                ctx.lineTo(24, 24);
+                ctx.closePath();
+                ctx.fill();
             }
             index++;
         }
@@ -761,7 +777,7 @@ class Game {
         for (let i = 0; i < this.effects.length; i++) {
             let effect = this.effects[i];
             if (effect.type === id) {
-                effect = newEffect;
+                effect.duration = newEffect.duration;
                 return;
             }
         }
@@ -769,6 +785,10 @@ class Game {
         this.effects.push(newEffect);
         const effectDiv = document.createElement("div");
         effectDiv.appendChild(this.makeIcon(...newEffect.getIcon(), 48))
+
+        const canvas = document.createElement("canvas");
+        canvas.width = canvas.height = 48;
+        effectDiv.appendChild(canvas);
         effectDiv.setAttribute("buff", Math.sign(newEffect.getEffect() - 1))
         effectDiv.addEventListener("mouseenter", () => this.selectedEffect = newEffect.type);
         effectDiv.addEventListener("mouseleave", () => this.selectedEffect = null);

@@ -61,7 +61,6 @@ class SaveManager {
             const string = this.decrypt(code);
 
             const data = this.convertToObject(string);
-
             this.loadObject(data);
 
             return true;
@@ -94,6 +93,7 @@ class SaveManager {
         for (const key of Object.keys(data)) {
             switch (key) {
                 case "effects":
+                    this.game.effects = [];
                     for (const e of data.effects) {
                         this.game.addEffect(e.id, e.duration);
                     }
@@ -110,26 +110,30 @@ class SaveManager {
         text += "c:" + obj.coins + ":";
         text += "tc:" + obj.totalCoins + ":";
         text += "bu:" + this.keypairsToText(obj.buildings) + ":";
-        text += "bo:" + obj.bought.join(";") + ":";
-        text += "a:" + obj.achievements.join(";") + ":";
+        text += "bo:" + this.arrayToText(obj.bought) + ":";
+        text += "a:" + this.arrayToText(obj.achievements) + ":";
         text += "t:" + this.keypairsToText(obj.total) + ":";
         text += "cl:" + obj.clicks + ":";
         text += "s:" + obj.startDate.getTime() + ":";
         text += "cd:" + obj.coinsDestroyed + ":";
-        text += "e:" + obj.effects.map(e => e.id + ";" + e.duration + ";").join(";") + ":";
+        text += "e:" + this.effectsToText(obj.effects) + ":";
         
         return text;
     }
 
     textToArray(str) {
         if (!str) return [];
-        return str.split(";")
+        return str.split(";");
+    }
+
+    effectsToText(effects) {
+        return effects.map(({id, duration}) => id + ";" + duration).join(";");
     }
 
     textToKeypairs(str) {
         if (str === "") return {};
         // Always {...key: number,...}
-        const fragments = str.split(";").slice(0, -2);
+        const fragments = str.split(";");
         const obj = {};
         for (let i = 0; i < fragments.length; i += 2) {
             const [key, value] = [fragments[i], fragments[i + 1]];
@@ -218,8 +222,12 @@ class SaveManager {
         return effects;
     }
 
+    arrayToText(arr) {
+        return arr.join(";");
+    }
+
     keypairsToText(obj) {
-        return Object.entries(obj).map(([k, v]) => k + ";" + v + ";").join("");
+        return Object.entries(obj).map(([k, v]) => k + ";" + v).join(";");
     }
 
     encrypt(text) {
@@ -255,7 +263,6 @@ class SaveManager {
                     decrypted += chars;
                 }
             }
-
             return atob(decrypted);
         } else {
             return null;

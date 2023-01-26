@@ -3,18 +3,18 @@ class Effect {
     duration;
     game;
 
-    constructor(type, duration = 60, game) {
+    constructor(type, duration = null, game) {
         this.type = type;
-        this.duration = duration;
+        this.duration = duration || this.maxDuration;
         this.game = game;
     }
 
     get maxDuration() {
         switch (this.type) {
             case "frenzy":
-                return 30;
+                return 15;
             case "superFrenzy":
-                return 20;
+                return 10;
         }
     }
 

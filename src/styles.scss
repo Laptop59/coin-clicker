@@ -27,6 +27,7 @@ $TB: 2;
     bottom: 0;
     left: 0;
     width: $CW;
+    user-select: none;
 
     text-align: center;
 
@@ -676,6 +677,7 @@ input[type="checkbox"] {
     bottom: 0;
     width: $CW;
     position: absolute;
+    user-select: none;
 
     >div {
         width: 100%;
@@ -688,6 +690,16 @@ input[type="checkbox"] {
             margin-bottom: 5px;
             display: inline-block;
             z-index: 7;
+
+            canvas {
+                position: absolute;
+                margin-left: -48px;
+            }
+
+            img {
+                position: relative;
+                z-index: 15;
+            }
 
             &[buff="1"] {
                 animation: buff 3s ease infinite;
