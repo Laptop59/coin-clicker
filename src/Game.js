@@ -2,11 +2,12 @@ import BIG_COIN_SRC from "./images/coin_button.png";
 import BLANK_SRC from "./images/blank_icon.png";
 import buildings from "./Buildings";
 import upgrades from "./Upgrades";
-import achievements from "./Achievements";
+import {categorizedAchievements, achievements} from "./Achievements";
 import FallingCoin from "./FallingCoin";
 import SaveManager from "./SaveManager";
 import CoinImager from "./CoinImager";
 import Effect from "./Effect";
+import Translator from "./Translator";
 
 class Game {
     coins = 0
@@ -27,7 +28,6 @@ class Game {
     images = {};
     buildings = {};
     bought = [];
-    achievements = [];
 
     ticks = 0;
 
@@ -42,6 +42,7 @@ class Game {
     mouseY = 0;
 
     achieveMultiplier = 1;
+    translator = new Translator();
 
     buyModeColours = {
         1:   "black",
@@ -133,17 +134,23 @@ class Game {
             elem.addEventListener("mouseenter", () => this.selectedBuilding = b.id);
         }
 
-        for (let a of achievements) {
-            const imgdiv = document.createElement("div");
-            imgdiv.className = "imgdiv achievement-" + a.id;
-            imgdiv.appendChild(this.makeIcon(0, 4, 64));
+        for (let [cn, cv] of Object.entries(categorizedAchievements)) {
+            const category = document.createElement("div");
+            category.className = "category category-" + cn;
+            category.innerHTML = this.translator.formatAchievementCategory(cn);
+            document.querySelector("achievements").appendChild(category);
+            for (let a of cv) {
+                const imgdiv = document.createElement("div");
+                imgdiv.className = "imgdiv achievement-" + a.id;
+                imgdiv.appendChild(this.makeIcon(0, 4, 64));
 
-            imgdiv.addEventListener("mouseleave", () => this.selectedAchievement = null);
-            imgdiv.addEventListener("mouseenter", () => this.selectedAchievement = a.id);
+                imgdiv.addEventListener("mouseleave", () => this.selectedAchievement = null);
+                imgdiv.addEventListener("mouseenter", () => this.selectedAchievement = a.id);
 
-            document.querySelector(".work-wrapper").addEventListener("mouseover", () => this.selectedAchievement = null);
+                document.querySelector(".work-wrapper").addEventListener("mouseover", () => this.selectedAchievement = null);
 
-            document.querySelector("achievements").appendChild(imgdiv);
+                document.querySelector("achievements").appendChild(imgdiv);
+            }
         }
 
         for (let button of document.querySelectorAll(".buy-bar button")) {
@@ -192,7 +199,7 @@ class Game {
         .then(opt => {
             if (!opt) {
                 // Yes
-                this.addToElement(elem, "p", "<br><br><br>This action cannot be undone. Are you actually sure?")
+                this.addToElement(elem, "p", "This action cannot be undone. Are you actually sure?")
                 this.showDialog("Wipe Save", elem, ["YES", "No, cancel this dialog"]).then(opt => {
                     if (!opt) {
                         this.saveManager.wipe();
@@ -209,7 +216,7 @@ class Game {
             this.saveManager.saveToFile(code);
         } else {
             const saveDiv = document.createElement("div");
-            this.addToElement(saveDiv, "p", "Your save code for Coin Clicker:<br>");
+            this.addToElement(saveDiv, "p", "Your save code for Coin Clicker:");
 
             const textarea = this.addToElement(saveDiv, "textarea");
             textarea.setAttribute("readonly", "true");
@@ -227,7 +234,7 @@ class Game {
             this.saveManager.loadFromFile();
         } else {
             const loadDiv = document.createElement("div");
-            this.addToElement(loadDiv, "p", "Input your save code for Coin Clicker:<br>");
+            this.addToElement(loadDiv, "p", "Input your save code for Coin Clicker:");
 
             const textarea = this.addToElement(loadDiv, "textarea");
             textarea.setAttribute("unresizable", "true");
@@ -247,7 +254,7 @@ class Game {
                         break;
                     } else {
                         document.querySelector(".dialog span[color=\"red\"]").innerHTML = 
-                        (result === null ? "Haha. Nice try.<br>" : "Save code is invalid.<br>");
+                        (result === null ? "Haha. Nice try." : "Save code is invalid.");
                     }
                 } else break;
             }
@@ -408,6 +415,20 @@ class Game {
                 div.appendChild(this.makeIcon(0, 4, 64))
             }
         }
+        for (const [ck, cv] of Object.entries(categorizedAchievements)) {
+            let unlocked = 0;
+            for (const a of cv) {
+                if (this.achievements.indexOf(a.id) >= 0) unlocked++;
+            }
+
+            let category = document.querySelector(".category-" + ck);
+            category.setAttribute("unlocked", +unlocked);
+            if (unlocked) {
+                category.innerHTML = this.translator.formatAchievementCategory(ck) + "<span><p>" + this.translator.formatAchievementCategoryCount(unlocked, cv.length) + "</p>";
+            } else {
+                category.innerHTML = "???";
+            }
+        }
     }
 
     formatDate(date) {
@@ -428,7 +449,7 @@ class Game {
             elem.getElementsByTagName("div")[0].getElementsByTagName("span")[0].style.color = this.buyModeColours[this.buyMode]
 
             if (this.totalCoins >= building.cost) {
-                elem.getElementsByTagName("h2")[0].textContent = building.names[0];
+                elem.getElementsByTagName("h2")[0].textContent = this.translator.formatBuilding(building.id);
                 elem.getElementsByClassName("big")[0].className = "icon big unlock";
             } else {
                 elem.getElementsByTagName("h2")[0].textContent = "???";
@@ -450,20 +471,21 @@ class Game {
             const elem = document.getElementsByClassName("building-tooltip")[0]
             elem.style.visibility = "visible";
 
+            const tid = buildings[id].id;
             const icon = unlock ? buildings[id].icon : [0, 4];
-            const amount = this.buildings[buildings[id].id];
+            const amount = this.buildings[tid];
             
             // Set the text
             elem.getElementsByTagName("div")[0].innerHTML = "";
             elem.getElementsByTagName("div")[0].appendChild(this.makeIcon(icon[0], icon[1], 48)) 
-            elem.getElementsByTagName("h2")[0].textContent = unlock ? buildings[id].names[0] : "???"
+            elem.getElementsByTagName("h2")[0].textContent = unlock ? this.translator.formatBuilding(tid) : "???"
             elem.style.top = (this.mouseY - 75/2) + "px";
 
             // Set desc
             elem.getElementsByTagName("p")[0].innerHTML = unlock ?
-                (buildings[id].description.replace("%1", this.convertToEnglish(this.rates[buildings[id].id]?.map(x => x * this.multiplier)) +
-                    (amount > 1 ? (", each making " + this.convertToEnglish(this.rates[buildings[id].id]?.map(x => x * this.multiplier / this.buildings[buildings[id].id]))) : "")) +
-                    (amount ? ("<br><b>" + this.commify(this.total[buildings[id].id]) + " coins made so far.</b>") : ""))
+                (this.translator.formatBuildingDescription(tid).replace("%1", this.convertToEnglish(this.rates[tid]?.map(x => x * this.multiplier)) +
+                    (amount > 1 ? (", each making " + this.convertToEnglish(this.rates[tid]?.map(x => x * this.multiplier / this.buildings[tid]))) : "")) +
+                    (amount ? ("<b>" + this.commify(this.total[tid]) + " coins made so far.</b>") : ""))
                 : "???";
         } else {
             document.getElementsByClassName("building-tooltip")[0].style.visibility = "hidden";
@@ -664,7 +686,7 @@ class Game {
         
         const float = Math.max(Math.floor(number / starting * 1000) / 1000, 1);
 
-        return float.toFixed(3) + (br ? "<br><span>" : " ") + this.illionSuffix(illion - 1) + (br ? "</span>" : "");
+        return float.toFixed(3) + (br ? "<span>" : " ") + this.illionSuffix(illion - 1) + (br ? "</span>" : "");
     }
 
     illionSuffix(illion) {

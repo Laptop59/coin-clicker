@@ -27,7 +27,7 @@ class FallingCoin {
     setSpecial() {
         // 0000 - 9999
         const num = Math.random() * 100;
-        if (num < 20.5) this.id = "orange";
+        if (num < 0.75) this.id = "orange";
     }
 
     draw() {

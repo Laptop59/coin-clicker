@@ -3,7 +3,7 @@ import Effect from "./Effect";
 class SaveManager {
     game
     SUGGESTED = "Coin Clicker Save.txt";
-    encryptedMode = true
+    encryptedMode = false
     constructor(game) {
         this.game = game;
     }

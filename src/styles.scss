@@ -493,6 +493,31 @@ achievements div.imgdiv {
     position: relative;
 }
 
+achievements div.category {
+    background-color: rgba(0, 0, 0, 0.375);
+    height: 50px;
+    width: calc(100% - 15px);
+    font-size: 25px;
+    text-align: center;
+    line-height: 35px;
+    margin-top: 22.5px;
+    margin-bottom: 7.5px;
+    font-weight: bold;
+    color: white;
+
+    &[unlocked="0"] {
+        height: 30px;
+        background-color: rgba(0, 0, 0, 0.125);
+    }
+
+    span {
+        font-size: 15px;
+        line-height: 0px;
+        position: relative;
+        top: -10px;
+    }
+}
+
 .achievement-tooltip {
     position: absolute;
     left: 0;
