@@ -931,7 +931,6 @@ class Game {
     canvasClick(e: MouseEvent) {
         if (this.ready < 2) return;
 
-
         const {clientX: x, clientY: y} = e;
         // It already lines up.
         // Calculate our offsets.
@@ -945,7 +944,8 @@ class Game {
             return this.coinClick();
         }
 
-        for (let i = this.fallingCoins.length - 1, coin = this.fallingCoins[i]; i >= 0; i--) {
+        for (let i = this.fallingCoins.length - 1; i >= 0; i--) {
+            const coin = this.fallingCoins[i]
             if (coin.isTouching(x, y)) {
                 this.coinsDestroyed++;
                 coin.click();
