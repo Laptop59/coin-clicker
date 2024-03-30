@@ -40,7 +40,33 @@ const TRANSLATION = {
         return float.toFixed(3) + (br ? "&nbsp;<span>" : " ") + illionSuffix(illion - 1) + (br ? "</span>" : "");
     },
 
+    "format_date" : function (date: Date) {
+        const months = ["January", "Feburary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        return months[date.getMonth()] + " " + date.getDate() + ", " + date.getFullYear();
+    },
+
     "translations": {
+        ///////////
+        // COINS //
+        ///////////
+
+
+        "coins.per_click": "%1/click",
+        "coins.per_second": "%1/second",
+        "coins.saved": "SAVED",
+
+
+        /////////////
+        // EFFECTS //
+        /////////////
+        // Name
+        "effects.name.frenzy": "Frenzy",
+        "effects.name.super_frenzy": "Super Frenzy",
+
+        // Description
+        "effects.description.frenzy": "Increases your production by <b>700%</b>",
+        "effects.description.super_frenzy": "Increases your production by <b>8,700%</b>",
         ///////////////
         // BUILDINGS //
         ///////////////

@@ -25,7 +25,7 @@ class HtmlBuilder {
             this.audioWrapper(
                 this.loopingMusic()
             ),
-            this.canvasWrapper(),
+            this.canvasWrapper(translator),
             this.middleWrapper(translator),
             this.buildingsWrapper(translator),
             this.buildingTooltip(),
@@ -153,7 +153,7 @@ class HtmlBuilder {
             <div class="effects"><div></div></div>
         </div>
      */
-    static canvasWrapper(): HTMLDivElement {
+    static canvasWrapper(translator: Translator): HTMLDivElement {
         let div = document.createElement("div");
         div.className = "canvas-wrapper";
 
@@ -170,7 +170,7 @@ class HtmlBuilder {
         let span = document.createElement("span");
         span.className = "savetext";
         let innerSpan = document.createElement("span");
-        innerSpan.textContent = "SAVED";
+        innerSpan.textContent = translator.format("coins.saved");
         span.appendChild(innerSpan);
 
         let effects = document.createElement("div");

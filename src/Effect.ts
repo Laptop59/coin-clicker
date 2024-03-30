@@ -5,7 +5,7 @@ import Game from "./Game";
  */
 enum EffectType {
     FRENZY = 'frenzy',
-    SUPER_FRENZY = 'superFrenzy'
+    SUPER_FRENZY = 'super_frenzy'
 }
 
 /**
@@ -95,14 +95,10 @@ class Effect {
      * `[(name of the effect displayed), (description of the effect)]`
      */
     getMeta(): [string, string] {
-        switch (this.type) {
-            case EffectType.FRENZY:
-                return ["Frenzy",
-                "Increases your production by <b>700%</b>"];
-            case EffectType.SUPER_FRENZY:
-                return ["Super Frenzy",
-                "Increases your production by <b>8,700%</b>"];
-        }
+        return [
+            "effects.name." + this.type,
+            "effects.description." + this.type
+        ];
     }
 
     /**

@@ -745,9 +745,8 @@ class Game {
      * @returns The formatted date as a string.
      */
     formatDate(date: Date) {
-        const months = ["January", "Feburary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-        return months[date.getMonth()] + " " + date.getDate() + ", " + date.getFullYear();
+        // Note: English language code here has be moved to the languages/en_us.ts file.
+        return this.translator.formatDate(date);
     }
 
     /**
@@ -755,8 +754,8 @@ class Game {
      */
     updateText() {
         document.getElementsByClassName("coins-header")[0].getElementsByTagName("span")[0].innerHTML = "" + this.commify(this.coins, true);
-        document.getElementsByClassName("cpc-header")[0].getElementsByTagName("span")[0].innerHTML = this.commify(this.mulCoinsPerClick) + "/click";
-        document.getElementsByClassName("cps-header")[0].getElementsByTagName("span")[0].innerHTML = this.coinsPerSec ? (this.commify(this.mulCoinsPerSec) + "/second") : "";
+        document.getElementsByClassName("cpc-header")[0].getElementsByTagName("span")[0].innerHTML = this.translator.format("coins.per_click", this.commify(this.mulCoinsPerClick));
+        document.getElementsByClassName("cps-header")[0].getElementsByTagName("span")[0].innerHTML = this.coinsPerSec ? this.translator.format("coins.per_second", this.commify(this.mulCoinsPerSec)) : "";
         (<HTMLElement>document.getElementsByClassName("cps-header")[0]).style.visibility = this.coinsPerSec ? "" : "hidden";
 
         for (let building of buildings) {

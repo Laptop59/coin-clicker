@@ -30,6 +30,14 @@ interface Language {
     commify: (number: number, br?: boolean, nodot?: boolean) => string,
 
     /**
+     * Formats a date into this format:\
+     * **Month** **DD**, **YYYY**
+     * @param date Date to format.
+     * @returns The formatted date as a string.
+     */
+    format_date: (date: Date) => string,
+
+    /**
      * The translations.
      */
     translations: {
@@ -49,7 +57,7 @@ class Translator {
     /**
      * The selected language.
      */
-    selected = "en--us";
+    selected = "en-us";
 
     /**
      * The fallback language chosen. This is used, for example, if a translation for another language doesn't exist.
@@ -102,7 +110,11 @@ class Translator {
                 continue;
             }
             if (!languageInfo.commify) {
-                throwLangError(lang, "`commify` was not found in the language declaration. It must be a commifier function, e.g. number => number.");
+                throwLangError(lang, "`commify` was not found in the language declaration. It must be a commifier function, e.g. (number: number) => number.");
+                continue;
+            }
+            if (!languageInfo.format_date) {
+                throwLangError(lang, "`format_date` was not found in the language declaration. It must be a date formatter, e.g. (date: Date) => date.toString().");
                 continue;
             }
             if (!languageInfo.translations) {
@@ -111,6 +123,9 @@ class Translator {
             }
             this.languages[languageInfo.id] = languageInfo;
         }
+
+        // At least one function must be available.
+
         this.logLanguages();
 
         function throwLangError(lang: string, error: string) {
@@ -130,6 +145,7 @@ class Translator {
      * @returns The current language
      */
     getCurrent() {
+        if (Object.keys(this.languages).length < 1) throw new Error("No languages are available.");
         return this.languages[this.selected];
     }
 
@@ -138,6 +154,7 @@ class Translator {
      * @returns The fallback language
      */
     getFallback() {
+        if (Object.keys(this.languages).length < 1) throw new Error("No languages are available.");
         return this.languages?.[this.fallback];
     }
 
@@ -153,6 +170,16 @@ class Translator {
      */
     commify (number: number, br?: boolean, nodot?: boolean): string {
         return (this.getCurrent() ?? this.getFallback())?.commify(number, br, nodot) ?? number;
+    }
+
+    /**
+     * Formats a date into this format:\
+     * **Month** **DD**, **YYYY**
+     * @param date Date to format.
+     * @returns The formatted date as a string.
+     */
+    formatDate(date: Date) {
+        return (this.getCurrent() ?? this.getFallback())?.format_date(date);
     }
 
     /**

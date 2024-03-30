@@ -138,7 +138,12 @@ class SaveManager {
      * @returns An array of desimplified effects.
      */
     desimplifyEffects(effects: SimplifiedEffects[]): Effect[] {
-        return effects.map(e => new Effect(e.id as Effect["type"], e.duration, this.game))
+        return effects.map(e => {
+            let {id, duration} = e;
+            // to account for older saves.
+            if (id === "superFrenzy") id = "super_frenzy";
+            return new Effect(id as Effect["type"], duration, this.game);
+        })
     }
 
     /**

@@ -11,7 +11,7 @@ const TRANSLATION = {
     "id": "_fb",
     "name": "Fallback",
     "author": "Laptop59",
-    "commify": function (number: number, br = false, nodot = false): string {
+    "commify": function(number: number, br = false, nodot = false): string {
         if (br) number = Math.floor(number);
 
         if (!isFinite(number)) return number + "";
@@ -20,6 +20,12 @@ const TRANSLATION = {
 
         number = Math.floor(number);
         return "" + number;
+    },
+    
+    "format_date": function(date: Date): string {
+        const months = ["January", "Feburary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        return months[date.getMonth()] + " " + date.getDate() + ", " + date.getFullYear();
     },
 
 
