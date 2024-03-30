@@ -11,12 +11,40 @@ const TRANSLATION = {
     "id": "en-us",
     "name": "English",
     "author": "Laptop59",
+    "commify": function (number: number, br = false, nodot = false): string {
+        if (br) number = Math.floor(number);
+
+        if (!isFinite(number)) return number + "";
+        if (number < 0) return "-" + TRANSLATION.commify(-number);
+        if (!br && !nodot && number < 10) return number.toFixed(1);
+
+        number = Math.floor(number);
+        if (number < 1000000000) return number.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
+
+        const illion = Math.floor(Math.log10(number) / 3);
+        const starting = Math.pow(10, illion * 3);
+
+        const float = Math.max(Math.floor(number / starting * 1000) / 1000, 1);
+
+        function illionSuffix(illion: number) {
+            if (illion == 100) return "centillion";
+            if (illion == 101) return "uncentillion";
+            if (illion < 10) {
+                return ["million", "billion", "trillion", "quadrillion", "quintillion", "sextillion", "septillion", "octillion", "nonillion"][illion - 1];
+            }
+            let unit = ["", "un", "duo", "tre", "quattuor", "quin", "sex", "septen", "octo", "novem"][illion % 10];
+            let ten = ["", "dec", "vigint", "trigint", "quadragint", "quinquagint", "sexagint", "septuagint", "octogint", "nonagint"][Math.floor(illion / 10) % 10];
+            return unit + ten + "illion";
+        }
+
+        return float.toFixed(3) + (br ? "&nbsp;<span>" : " ") + illionSuffix(illion - 1) + (br ? "</span>" : "");
+    },
 
     "translations": {
         ///////////////
         // BUILDINGS //
         ///////////////
-
+        "building.buildings": "Buildings",
 
         "building.cursor.singular": "Cursor",
         "building.cursors.plural": "Cursors",
@@ -50,6 +78,129 @@ const TRANSLATION = {
         "building.lab.plural": "Technological Labs",
         "building.lab.description": "Finds and creates new technology, which all together technologically code in %1.",
 
+        ///////////
+        // STATS //
+        ///////////
+        "stats.general_title": "General",
+        "stats.owned_coins": "Coins currently owned: %1%2",
+        "stats.total_coins": "Total coins made: %1%2",
+        "stats.raw_coins_per_click": "Raw coins per click: %1%2",
+        "stats.raw_coins_per_second": "Raw coins per second: %1%2",
+        "stats.clicks_done": "Clicks done: %1%2",
+        "stats.start_date": "Start Date: %1",
+        "stats.coins_destroyed": "Coins Destroyed: %1%2",
+        "stats.buildings": "Buildings: %1",
+        "stats.multiplier": "Current multiplier percentage: %1%",
+        "stats.achievements_title": "Achievements",
+        "stats.unlocked_achievements": "Achievements unlocked: %1/%2",
+        "stats.achievement_multiplier": "Achievement multiplier percentage: %1% (each achievement gives +15%)",
+
+        /////////////
+        // OPTIONS //
+        /////////////
+        "options.basic_title": "Basic",
+        "options.game_data_title": "Game Data",
+        "options.save_to_browser": "Save to browser (CTRL+S)",
+        "options.autosave": "Autosave",
+
+        "options.save_game_data.main": "Save your game data %1 %2.",
+        "options.save_game_data.1": "into text",
+        "options.save_game_data.2": "into a file",
+
+        "options.load_game_data.main": "Load your game data %1 %2.",
+        "options.load_game_data.1": "from text",
+        "options.load_game_data.2": "from a file",
+
+        "options.unsafe_title": "Unsafe",
+        "options.wipe_save": "Wipe save",
+
+
+        /////////////
+        // DIALOGS //
+        ////////////
+
+
+        "dialogs.ok": "OK",
+
+        "dialogs.wipe.wipe_save": "Wipe Save",
+        "dialogs.wipe.warning_1": "Are you sure you want to <b style=\"color: red;\">WIPE THIS SAVE</b>?<br>If you press YES, all your progress, including your coins, achievements and buildings will disappear!",
+        "dialogs.wipe.yes": "YES!",
+        "dialogs.wipe.no": "No, cancel this dialog.",
+        "dialogs.wipe.warning_2": "This action cannot be undone. Are you actually 100% sure?<br><b>Don't forget that this is irreversible!</b><br>You might want to think carefully before clicking YES.",
+
+        "dialogs.save.info": "Your save code for <b>Coin Clicker</b>:",
+        "dialogs.save.title": "Save Code",
+
+        "dialogs.load.info": "Input your save code for <b>Coin Clicker</b>:",
+        "dialogs.load.title": "Load Code",
+        "dialogs.load.load": "Load",
+        "dialogs.load.cancel": "Cancel",
+
+        "dialogs.load.haha_nice_try": "Haha. Nice try.",
+        "dialogs.load.invalid_save_code": "Save code is invalid.",
+
+        "dialogs.error.fatal_error": "Fatal Error",
+        "dialogs.error.info": "We're really sorry for the inconvience this has caused, but the game has experienced a fatal error.<br><br>Please reload your page.",
+        "dialogs.error.reload": "Reload",
+
+        
+        //////////////
+        // UPGRADES //
+        //////////////
+        // NAME
+        "upgrades.name.cursor_1": "Calcium cursors",
+        "upgrades.name.family_1": "Joint families",
+        "upgrades.name.shop_1": "Advertised shops",
+        "upgrades.name.bank_1": "Different coloured-coins",
+        "upgrades.name.carnival_1": "Crazier stunts",
+        "upgrades.name.power_plant_1": "Coin energy homes",
+        "upgrades.name.cursor_2": "Silver cursors",
+        "upgrades.name.family_2": "Shopkeeper families",
+        "upgrades.name.shop_2": "Megashops",
+        "upgrades.name.bank_2": "Coin liquid-made vaults",
+        "upgrades.name.carnival_2": "Extreme-scummy arcade games",
+        "upgrades.name.power_plant_2": "Coin energized generators",
+        "upgrades.name.cursor_3": "Crystal clear cursors",
+        "upgrades.name.cursor_4": "Butterfly cursors",
+        "upgrades.name.cursor_5": "Autoclick cursors",
+        "upgrades.name.cursor_6": "Cursors inside cursors",
+
+        // DESCRIPTION
+        "upgrades.description.cursor_1": "A stronger cursor to click more coins for you.",
+        "upgrades.description.family_1": "A bigger family to work with you and make more coins for you.",
+        "upgrades.description.shop_1": "Uses advertisements to sell more items.",
+        "upgrades.description.bank_1": "Uses different kinds of coins to make more interest.",
+        "upgrades.description.carnival_1": "Uses more kinds of stunts to cash out more coins.",
+        "upgrades.description.power_plant_1": "Gives out coin energy to homes using it, generating more fees for coins.",
+        "upgrades.description.cursor_2": "A shiny cursor which uses its shininess to click more coins.",
+        "upgrades.description.family_2": "Families to sell more kinds of items for you.",
+        "upgrades.description.shop_2": "Uses supermarkets without perception of time to sell more items.",
+        "upgrades.description.bank_2": "Uses liquid coin metal in vaults to generate more coins.",
+        "upgrades.description.carnival_2": "Cashes out more coins by bankrupting players.",
+        "upgrades.description.power_plant_2": "Generates more coin energy, used for more generators for the same.",
+        "upgrades.description.cursor_3": "A very hard diamond cursor which uses its strength to click more coins.",
+        "upgrades.description.cursor_4": "A cursor which uses butterfly clicking to create more coins.",
+        "upgrades.description.cursor_5": "A cursor with uses an auto-clicking program to create more coins.",
+        "upgrades.description.cursor_6": "A cursor which uses a paradox to create more coins.",
+
+        // USE
+        "upgrades.upgrades": "Upgrades",
+        "upgrades.use.cursor_1": "<b>Doubles</b> the production of cursors.",
+        "upgrades.use.family_1": "<b>Triples</b> the production of family businesses.",
+        "upgrades.use.shop_1": "<b>Triples</b> the production of shops.",
+        "upgrades.use.bank_1": "<b>Doubles</b> the production of banks.",
+        "upgrades.use.carnival_1": "<b>Doubles</b> the production of carnivals.",
+        "upgrades.use.power_plant_1": "<b>Doubles</b> the production of power plants.",
+        "upgrades.use.cursor_2": "<b>Triples</b> the production of cursors.",
+        "upgrades.use.family_2": "Shops increase production by <b>+1%</b> for every family business.<br><b>Multiplies</b> the production of family businesses <b>by 10</b>.",
+        "upgrades.use.shop_2": "<b>Multiplies</b> the production of shops <b>by 5</b>.",
+        "upgrades.use.bank_2": "<b>Multiplies</b> the production of banks <b>by 7</b>.",
+        "upgrades.use.carnival_2": "<b>Triples</b> the production of carnivals.",
+        "upgrades.use.power_plant_2": "<b>Triples</b> the production of power plants.",
+        "upgrades.use.cursor_3": "<b>Multiplies</b> the production of cursors <b>by 8</b>.",
+        "upgrades.use.cursor_4": "Every non-cursor building grants <b>+1% more</b> the production of cursors.",
+        "upgrades.use.cursor_5": "Every non-cursor building grants <b>+2% more</b> the production of cursors, for a total of <b>+3.02%</b>.",
+        "upgrades.use.cursor_6": "Every non-cursor building grants <b>+3% more</b> the production of cursors, for a total of <b>+6.11%</b>.",
 
         //////////////////
         // ACHIEVEMENTS //
@@ -101,7 +252,7 @@ const TRANSLATION = {
         "achievements.name.destroy_1": "What the fell?",
         "achievements.name.destroy_2": "Just stop!",
         "achievements.name.destroy_3": "Serial destroyer",
-        "achievements.name.destroy_orange": "No way..? Is it magic?",
+        "achievements.name.destroy_orange": "No way..? Is it magic??",
         "achievements.name.destroy_orange_super": "WAAOOOOOOOOOOOOOO",
 
         // DESCRIPTION

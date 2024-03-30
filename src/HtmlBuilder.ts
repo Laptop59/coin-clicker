@@ -1,3 +1,4 @@
+import Translator from "./Translator";
 import music from "./sounds/music.wav";
 
 /**
@@ -6,25 +7,27 @@ import music from "./sounds/music.wav";
 class HtmlBuilder {
     /**
      * Populates the body node.
+     * @param translator A translator instance.
      */
-    static populate() {
-        document.body.append(...this.generate());
+    static populate(translator: Translator) {
+        document.body.append(...this.generate(translator));
         console.log("Populated <body>.");
     }
 
     /**
      * Generates a list of nodes which must be inserted into the body tag.
+     * @param translator A translator instance.
      * @returns {HTMLDivElement[]}
      */
-    static generate(): HTMLDivElement[] {
+    static generate(translator: Translator): HTMLDivElement[] {
         return [
             this.loadingDiv(),
             this.audioWrapper(
                 this.loopingMusic()
             ),
             this.canvasWrapper(),
-            this.middleWrapper(),
-            this.buildingsWrapper(),
+            this.middleWrapper(translator),
+            this.buildingsWrapper(translator),
             this.buildingTooltip(),
             this.achievementTooltip(),
             this.upgradeTooltip(),
@@ -186,7 +189,8 @@ class HtmlBuilder {
     }
 
     /**
-     * Generates a middle wrapper
+     * Generates a middle wrapper.
+     * @param translator A translator instance.
      * @returns {HTMLDivElement}
      * <div class="middle-wrapper">
             <div class="tab-wrapper">
@@ -226,7 +230,7 @@ class HtmlBuilder {
             </div>
         </div>
      */
-    static middleWrapper(): HTMLDivElement {
+    static middleWrapper(translator: Translator): HTMLDivElement {
         let div = document.createElement("div");
         div.className = "middle-wrapper";
 
@@ -246,33 +250,47 @@ class HtmlBuilder {
         let statsWrapper = document.createElement("div");
         statsWrapper.className = "stats-wrapper";
         statsWrapper.innerHTML = [
-            '<p>Coins currently owned: <coin></coin><span stat="ownedCoins">...</span></p>',
-            '<p>Total coins made: <coin></coin><span stat="totalCoins">...</span></p>',
-            '<p>Raw coins per click: <icon x="1" y="0"></icon><span stat="rawCoinsPerClick">...</span></p>',
-            '<p>Raw coins per second: <icon x="1" y="0"></icon><span stat="rawCoinsPerSec">...</span></p>',
-            '<p>Clicks done: <icon x="0" y="1"></icon><span stat="clicks">...</span></p>',
-            '<p>Start Date: <span stat="startDate">...</span></p>',
-            '<p>Coins Destroyed: <icon x="2" y="0"></icon><span stat="coinsDestroyed">...</span></p>',
+            this.h2Stat(translator, 'stats.general_title'),
+            this.pStat(translator, 'stats.owned_coins', '<coin></coin>', '<span stat="ownedCoins">...</span>'),
+            this.pStat(translator, 'stats.total_coins', '<coin></coin>', '<span stat="totalCoins">...</span>'),
+            this.pStat(translator, 'stats.raw_coins_per_click', '<icon x="1" y="0"></icon>', '<span stat="rawCoinsPerClick">...</span>'),
+            this.pStat(translator, 'stats.raw_coins_per_second', '<icon x="1" y="0"></icon>', '<span stat="rawCoinsPerSec">...</span>'),
+            this.pStat(translator, 'stats.clicks_done', '<icon x="0" y="1"></icon>', '<span stat="clicks">...</span>'),
+            this.pStat(translator, 'stats.start_date', '<span stat="startDate">...</span>'),
+            this.pStat(translator, 'stats.coins_destroyed', '<icon x="2" y="0"></icon>', '<span stat="coinsDestroyed">...</span>'),
+
             '<br>',
-            '<p>Buildings: <span stat="buildings">...</span></p>',
-            '<p>Current multiplier percentage: <span stat="multiplier">...</span>%</p>',
-            '<h2>Achievements</h2>',
-            '<p>Achievements unlocked: <span stat="unlockedAchievements">...</span>/<span stat="totalAchievements">...</span></p>',
-            '<p>Achievement multiplier percentage: <span stat="achievementMultiplier">...</span>% (each achievement gives +15%)</p>',
+
+            this.pStat(translator, 'stats.buildings', '<span stat="buildings">...</span>'),
+            this.pStat(translator, 'stats.multiplier','<span stat="multiplier">...</span>'),
+            this.h2Stat(translator, 'stats.achievements_title'),
+            this.pStat(translator, 'stats.unlocked_achievements', '<span stat="unlockedAchievements">...</span>', '<span stat="totalAchievements">...</span>'),
+            this.pStat(translator, 'stats.achievement_multiplier', '<span stat="achievementMultiplier">...</span>'),
+
             '<achievements></achievements>'
         ].join("");
 
         let optionsWrapper = document.createElement("div");
         optionsWrapper.className = "options-wrapper";
         optionsWrapper.innerHTML = [
-            '<h2>Basic</h2>',
-            '<button class="saveGame">Save to browser (CTRL+S)</button>',
-            '<br><br><input class="autosave" type="checkbox" checked>Autosave</input><br><br>',
-            '<h2>Game Data</h2>',
-            '<p>Save your game data <button class="saveGameText">into text</button><button class="saveGameFile">into a file</button>.</p>',
-            '<p>Load your game data <button class="loadGameText">from text</button><button class="loadGameFile">from a file</button>.</p>',
-            '<h2 style="color: red;">Unsafe</h2>',
-            '<button class="wipeGame">Wipe save</button>'
+            this.h2Stat(translator, 'options.basic_title'),
+            `<button class="saveGame">${translator.format("options.save_to_browser")}</button>`,
+            `<br><br><input class="autosave" type="checkbox" checked>${translator.format("options.autosave")}</input><br><br>`,
+            this.h2Stat(translator, 'options.game_data_title'),
+
+            this.pStatWithImportance(translator,
+                "options.save_game_data.main",
+                `<button class="saveGameText">${translator.format("options.save_game_data.1")}</button>`,
+                `<button class="saveGameFile">${translator.format("options.save_game_data.2")}</button>`
+            ),
+            this.pStatWithImportance(translator,
+                "options.load_game_data.main",
+                `<button class="loadGameText">${translator.format("options.load_game_data.1")}</button>`,
+                `<button class="loadGameFile">${translator.format("options.load_game_data.2")}</button>`
+            ),
+
+            `<h2 style="color: red;">${translator.format("options.unsafe_title")}</h2>`,
+            `<button class="wipeGame">${translator.format("options.wipe_save")}</button>`
         ].join("");
 
         let achievements = document.createElement("div");
@@ -292,6 +310,49 @@ class HtmlBuilder {
 
         return div;
     };
+
+    /**
+     * Translates a stat. <p>
+     * @param translator The translator instance.
+     * @param translationId The ID in `camel_case`.
+     * @param impArgs Important arguments.
+     * @param args The extra arguments of the translation.
+     * @returns The newly created innerHTML. 
+     */
+    static pStat(translator: Translator, translationId: string, ...args: string[]) {
+        return `<p>${translator.format(translationId, ...args)}</p>`;
+    }
+
+    /**
+     * Translates a stat, with importance. <p>
+     * @param translator The translator instance.
+     * @param translationId The ID in `camel_case`.
+     * @param impArgs Important arguments.
+     * @param args The extra arguments of the translation.
+     * @returns The newly created innerHTML. 
+     */
+    static pStatWithImportance(translator: Translator, translationId: string, ...args: string[]) {
+        const p = document.createElement("p");
+        const tuple = translator.formatAsTuple(translationId, ...args);
+
+        console.log(tuple)
+        p.innerHTML = tuple[0];
+        tuple[1].forEach(element => {
+            p.innerHTML += element;
+        });
+        return p.outerHTML;
+    }
+
+    /**
+     * Translates a stat. <h2>
+     * @param translator The translator instance.
+     * @param translationId The stat ID in `camel_case`.
+     * @param args The extra arguments of the translation.
+     * @returns The newly created innerHTML. 
+     */
+    static h2Stat(translator: Translator, translationId: string, ...args: string[]) {
+        return `<h2>${translator.format(translationId, ...args)}</h2>`;
+    }
 
     /**
      * Creates a typed button.
@@ -325,14 +386,14 @@ class HtmlBuilder {
             <div style="height: 250px"></div>
         </div>
      */
-    static buildingsWrapper(): HTMLDivElement {
+    static buildingsWrapper(translator: Translator): HTMLDivElement {
         let div = document.createElement("div");
         div.className = "buildings-wrapper";
         div.innerHTML = [
-            '<span>Upgrades</span>',
+            `<span>${translator.format("upgrades.upgrades")}</span>`,
             '<div class="upgrades"></div>',
             '<br>',
-            '<span>Buildings</span>',
+            `<span>${translator.format("building.buildings")}</span>`,
             '<div class="buy-bar">',
                 '<button value="1">1</button>',
                 '<button value="10">10</button>',

@@ -163,7 +163,7 @@ class Game {
     /**
      * Translator owned by the game.
      */
-    translator = new Translator();
+    translator: Translator;
 
     /**
      * Describes the color of buy modes (powers).
@@ -261,8 +261,10 @@ class Game {
 
     /**
      * Creates a new `Game` object. This is used to represent Coin Clicker, as a game object.
+     * @param translator A translator instance.
      */
-    constructor() {
+    constructor(translator: Translator) {
+        this.translator = translator;
         // Get a reference to a canvas.
         this.canvas = <HTMLCanvasElement>document.getElementsByClassName("canvas")[0];
         this.canvas.addEventListener("click", this.canvasClick.bind(this));
@@ -285,11 +287,11 @@ class Game {
         selector(".saveGame").addEventListener("click", this.saveToStorage.bind(this));
         selector(".wipeGame").addEventListener("click", this.wipeSave.bind(this))
 
-        selector(".saveGameText").addEventListener("click", this.saveGame.bind(this, false))
-        selector(".saveGameFile").addEventListener("click", this.saveGame.bind(this, true))
+        selector(".saveGameText").addEventListener("click", this.saveGame.bind(this, SaveMedium.TEXT))
+        selector(".saveGameFile").addEventListener("click", this.saveGame.bind(this, SaveMedium.FILE))
 
-        selector(".loadGameText").addEventListener("click", this.loadGame.bind(this, false))
-        selector(".loadGameFile").addEventListener("click", this.loadGame.bind(this, true))
+        selector(".loadGameText").addEventListener("click", this.loadGame.bind(this, SaveMedium.TEXT))
+        selector(".loadGameFile").addEventListener("click", this.loadGame.bind(this, SaveMedium.FILE))
 
         // If the player uses the save key combination (CTRL + S), we want it to save.
         document.addEventListener('keydown', e => {
@@ -412,13 +414,15 @@ class Game {
      */
     wipeSave() {
         const elem = document.createElement("div");
-        this.addToElement(elem, "p", "Are you sure you want to <b style=\"color: red;\">WIPE THIS SAVE</b>?")
-        this.showDialog("Wipe Save", elem, ["YES!", "No, cancel this dialog"])
+        const yes = this.translator.format("dialogs.wipe.yes");
+        const no = this.translator.format("dialogs.wipe.no");
+        this.addToElement(elem, "p", this.translator.format("dialogs.wipe.warning_1"))
+        this.showDialog(this.translator.format("dialogs.wipe.wipe_save"), elem, [yes, no])
             .then(opt => {
                 if (!opt) {
                     // Yes
-                    this.addToElement(elem, "p", "This action cannot be undone. Are you actually sure?")
-                    this.showDialog("Wipe Save", elem, ["YES", "No, cancel this dialog"]).then(opt => {
+                    this.addToElement(elem, "p", this.translator.format("dialogs.wipe.warning_2"))
+                    this.showDialog("Wipe Save", elem, [yes, no]).then(opt => {
                         if (!opt) {
                             this.saveManager.wipe();
                         }
@@ -440,7 +444,7 @@ class Game {
                 break;
             case SaveMedium.TEXT:
                 const saveDiv = document.createElement("div");
-                this.addToElement(saveDiv, "p", "Your save code for Coin Clicker:");
+                this.addToElement(saveDiv, "p", this.translator.format("dialogs.save.info"));
 
                 const textarea = this.addToElement(saveDiv, "textarea");
                 textarea.setAttribute("readonly", "true");
@@ -449,7 +453,7 @@ class Game {
                 textarea.value = code;
 
                 this.addToElement(saveDiv, "br")
-                this.showDialog("Save Code", saveDiv);
+                this.showDialog(this.translator.format("dialogs.save.title"), saveDiv);
                 break;
         }
     }
@@ -465,7 +469,7 @@ class Game {
                 break;
             case SaveMedium.TEXT:
                 const loadDiv = document.createElement("div");
-                this.addToElement(loadDiv, "p", "Input your save code for Coin Clicker:");
+                this.addToElement(loadDiv, "p", this.translator.format("dialogs.load.info"));
 
                 const textarea = this.addToElement(loadDiv, "textarea");
                 textarea.setAttribute("unresizable", "true");
@@ -476,7 +480,7 @@ class Game {
                 error.setAttribute("color", "red");
 
                 while (true) {
-                    const index = await this.showDialog("Load Code", loadDiv, ["Load", "Cancel"], i => i === 1)
+                    const index = await this.showDialog( this.translator.format("dialogs.load.title"), loadDiv, [ this.translator.format("dialogs.load.load"),  this.translator.format("dialogs.load.cancel")], i => i === 1)
                     if (index === 0) {
                         // Load
                         const result = this.saveManager.loadText(textarea.value);
@@ -485,7 +489,7 @@ class Game {
                             break;
                         } else {
                             selector(".dialog span[color=\"red\"]").innerHTML =
-                                (result === null ? "Haha. Nice try." : "Save code is invalid.");
+                                (result === null ? this.translator.format("dialogs.load.haha_nice_try") : this.translator.format("dialogs.load.invalid_save_code"));
                         }
                     } else break;
                 }
@@ -516,7 +520,7 @@ class Game {
      * **Default Behaviour**: the dialog always closes.
      * @returns A promise which resolves with the index of the button the player clicked, when the player check a button.
      */
-    showDialog(title: string, element: HTMLElement, buttons = ["OK"], stay?: (index: number) => boolean) {
+    showDialog(title: string, element: HTMLElement, buttons = [this.translator.format("dialogs.ok")], stay?: (index: number) => boolean) {
         return new Promise(resolve => {
             selectorAll(".dialogButton").forEach(oldButton => {
                 assert(oldButton.parentElement).removeChild(oldButton);
@@ -631,10 +635,16 @@ class Game {
     tickWithTryCatch(time: number) {
         try {
             this.tick(time);
+            requestAnimationFrame(this.tickWithTryCatch.bind(this, +new Date()));
         } catch(e) {
+            const elem = document.createElement("div");
+            this.addToElement(elem, "p", this.translator.format("dialogs.error.info"));
+            this.showDialog(this.translator.format("dialogs.error.fatal_error"), elem, [this.translator.format("dialogs.error.reload")], (_) => false).then(
+                (_) => window.location.reload()
+            );
             console.error("Unhandled error: ", e);
         }
-        requestAnimationFrame(this.tickWithTryCatch.bind(this, +new Date()));
+        // requestAnimationFrame(this.tickWithTryCatch.bind(this, +new Date()));
     }
 
     /**
@@ -848,15 +858,15 @@ class Game {
             // Set the text
             elem.getElementsByTagName("div")[0].innerHTML = "";
             elem.getElementsByTagName("div")[0].appendChild(this.makeIcon(icon[0], icon[1], 48))
-            elem.getElementsByTagName("h2")[0].textContent = upgrades[id].name;
+            elem.getElementsByTagName("h2")[0].textContent = this.translator.format(`upgrades.name.${this.selectedUpgrade}`);
             elem.style.top = (this.mouseY + 25) + "px";
             elem.style.left = (this.mouseX - 25 - 245) + "px";
 
             // Set desc
             elem.getElementsByTagName("p")[0].innerHTML =
-                upgrades[id].description
+                this.translator.format(`upgrades.description.${this.selectedUpgrade}`);
             elem.getElementsByTagName("p")[1].innerHTML =
-                upgrades[id].use
+            this.translator.format(`upgrades.use.${this.selectedUpgrade}`);
             elem.getElementsByTagName("span")[0].textContent =
                 this.commify(upgrades[id].cost, false, true)
             elem.getElementsByTagName("span")[0].className = afford ? "afford" : "noafford"
@@ -1014,37 +1024,8 @@ class Game {
      * @returns the formatted number
      */
     commify(number: number, br = false, nodot = false): string {
-        if (br) number = Math.floor(number);
-
-        if (!isFinite(number)) return number + "";
-        if (number < 0) return "-" + this.commify(-number);
-        if (!br && !nodot && number < 10) return number.toFixed(1);
-
-        number = Math.floor(number);
-        if (number < 1000000000) return number.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",");
-
-        const illion = Math.floor(Math.log10(number) / 3);
-        const starting = Math.pow(10, illion * 3);
-
-        const float = Math.max(Math.floor(number / starting * 1000) / 1000, 1);
-
-        return float.toFixed(3) + (br ? "&nbsp;<span>" : " ") + this.illionSuffix(illion - 1) + (br ? "</span>" : "");
-    }
-
-    /**
-     * Returns an illion-suffix for a number.
-     * @param illion The illion index.
-     * @returns the suffix.
-     */
-    illionSuffix(illion: number) {
-        if (illion == 100) return "centillion";
-        if (illion == 101) return "uncentillion";
-        if (illion < 10) {
-            return ["million", "billion", "trillion", "quadrillion", "quintillion", "sextillion", "septillion", "octillion", "nonillion"][illion - 1];
-        }
-        let unit = ["", "un", "duo", "tre", "quattuor", "quin", "sex", "septen", "octo", "novem"][illion % 10];
-        let ten = ["", "dec", "vigint", "trigint", "quadragint", "quinquagint", "sexagint", "septuagint", "octogint", "nonagint"][Math.floor(illion / 10) % 10];
-        return unit + ten + "illion";
+        // Note: the language definition handles the commifying.
+        return this.translator.commify(number, br, nodot);
     }
 
     /**
@@ -1268,9 +1249,9 @@ class Game {
                 str = val;
             }
             if (typeof val === "number") {
-                selector("[stat=" + stat[0] + "]").textContent = this.commify(val, false, true);
+                selectorAll("[stat=" + stat[0] + "]").forEach(s => s.textContent = this.commify(<number>val, false, true));
             } else {
-                selector("[stat=" + stat[0] + "]").textContent = val;
+                selectorAll("[stat=" + stat[0] + "]").forEach(s => s.textContent = <string>val);
             }
         }
     }

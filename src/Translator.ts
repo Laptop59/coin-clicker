@@ -2,8 +2,36 @@
  * Represents information of a language.
  */
 interface Language {
+    /**
+     * The ID of the language.
+     */
+    id: string
+
+    /**
+     * The name of the language.
+     */
     name: string,
+    
+    /**
+     * The translator of the language.
+     */
     author: string,
+
+    /**
+     * Adds commas to a number and returns it, If the number is too big, it will instead add a suffix to the decimal number.\
+     * For example: `1.234e12` -----> `1.234 trillion`.
+     * @param number The number to format.
+     * @param br Whether or not the number is rounded down.
+     * @param nodot If `true`, there will be no dot which is added when the number is
+     * - less than `10`
+     * - is a decimal
+     * @returns the formatted number
+     */
+    commify: (number: number, br?: boolean, nodot?: boolean) => string,
+
+    /**
+     * The translations.
+     */
     translations: {
         [key: string]: string
     }
@@ -21,12 +49,12 @@ class Translator {
     /**
      * The selected language.
      */
-    selected = "en-us";
+    selected = "en--us";
 
     /**
      * The fallback language chosen. This is used, for example, if a translation for another language doesn't exist.
      */
-    fallback = "en-us";
+    fallback = "_fb";
 
     /**
      * Warnings about the chosen language.
@@ -73,6 +101,10 @@ class Translator {
                 throwLangError(lang, "`author` was not found in the language declaration. It must be the translator, e.g. \"Laptop59\"");
                 continue;
             }
+            if (!languageInfo.commify) {
+                throwLangError(lang, "`commify` was not found in the language declaration. It must be a commifier function, e.g. number => number.");
+                continue;
+            }
             if (!languageInfo.translations) {
                 throwLangError(lang, "`translations` was not found in the language declaration. It must be the translations, e.g. {\"building.cursor.singular\": \"Cursor\"}");
                 continue;
@@ -90,7 +122,7 @@ class Translator {
      * Logs all the languages in the translator.
      */
     logLanguages() {
-        console.log("[LANGUAGES] Loaded languages:\n" + Object.entries(this.languages).map(([id, data]) => "+ " + data.name + " (" + id + ")\n"))
+        console.log("[LANGUAGES] Loaded languages:\n" + Object.entries(this.languages).map(([id, data]) => "+ " + data.name + " (" + id + ")\n").join(""))
     }
 
     /**
@@ -110,11 +142,34 @@ class Translator {
     }
 
     /**
+     * Adds commas to a number and returns it, If the number is too big, it will instead add a suffix to the decimal number.\
+     * For example: `1.234e12` -----> `1.234 trillion`.
+     * @param number The number to format.
+     * @param br Whether or not the number is rounded down.
+     * @param nodot If `true`, there will be no dot which is added when the number is
+     * - less than `10`
+     * - is a decimal
+     * @returns the formatted number
+     */
+    commify (number: number, br?: boolean, nodot?: boolean): string {
+        return (this.getCurrent() ?? this.getFallback())?.commify(number, br, nodot) ?? number;
+    }
+
+    /**
      * Gets the translated string of a string ID.
      * @param str The ID of the translated string to translate.
      * @returns The translated string.
      */
-    format(str: string) {
+    format(str: string, ...args: string[]) {
+        return this.formatAsTuple(str, ...args)[0];
+    }
+
+    /**
+     * Gets the translated string of a string ID, as a tuple.
+     * @param str The ID of the translated string to translate.
+     * @returns The translated string, along with the unused args tuple.
+     */
+    formatAsTuple(str: string, ...args: string[]): [string, string[]] {
         const result = this.getCurrent()?.translations[str];
         if (!this.warns.includes(str) && !result) {
             let level = 1;
@@ -127,14 +182,31 @@ class Translator {
 
             if (level > 1) {
                 console.error("[TRANSLATION] Unknown key ", str);
-                return str;
+                return [str, []];
             } else {
                 console.warn("[TRANSLATION] Missing translation for key " + str);
-                return fallbackResult;
+                return this.fillArgs(fallbackResult, args);
             }
         }
 
-        return result ?? str;
+        return this.fillArgs(result ?? str, args);
+    }
+
+    /**
+     * Fills arguments (`%n`) with values.
+     * @param str String to fill.
+     * @param args Arguments.
+     * @returns The tuple of the filled string, and the unused strings.
+     */
+    fillArgs(str: string, args: string[]): [string, string[]] {
+        var str = str;
+        var unused: string[] = [];
+        args.forEach(a => unused.push(a));
+        for (let i = 0; i < args.length; i++) {
+            if (str.includes("%" + (i+1))) unused[i] = "";
+            str = str.replace("%" + (i+1), args[i]);
+        }
+        return [str, unused.filter(arg => !!arg)];
     }
 
     /**
