@@ -1,13 +1,100 @@
-import Effect from "./Effect";
+import Effect, { EffectType } from "./Effect";
+import Game from "./Game";
 
+/**
+ * An object that represents all the necessary information of a save.
+ */
+interface SaveObject {
+    /**
+     * The number of coins owned at the time of save.
+     */
+    coins: number,
+
+    /**
+     * The total number of coins made at the time of save.
+     */
+    totalCoins: number,
+
+    /**
+     * The amount of each building owned by the player at the time of save.
+     */
+    buildings: {[key: string]: number},
+
+    /**
+     * The bought upgrades at the time of save.
+     */
+    bought: string[],
+
+    /**
+     * The achievements achieved by the player at the time of save.
+     */
+    achievements: string[],
+
+    /**
+     * The total number of coins made from each building.
+     */
+    total: {[key: string]: number},
+
+    /**
+     * The number of clicks done by the player at the time of save.
+     */
+    clicks: number,
+
+    /**
+     * The time at which the player created their save.
+     */
+    startDate: Date,
+
+    /**
+     * The number of falling coins destroyed by the player via clicking at the time of save.
+     */
+    coinsDestroyed: number,
+
+    /**
+     * The effects that the player was undergoing at the time of save.
+     */
+    effects: SimplifiedEffects[]
+}
+
+/**
+ * A interface that represents only the data of an effect.
+ */
+interface SimplifiedEffects {
+    id: string,
+    duration: number
+}
+
+/**
+ * This class manages saves.
+ */
 class SaveManager {
-    game
+    /**
+     * A reference to the current game.
+     */
+    game: Game;
+
+    /**
+     * The suggested name of the file (for save).
+     */
     SUGGESTED = "Coin Clicker Save.txt";
-    encryptedMode = false
-    constructor(game) {
+
+    /**
+     * Whether the save code should be encrypted (with a non-standard algorithm).
+     */
+    encryptedMode = false;
+
+    /**
+     * Creates a new `SaveManager`.
+     * @param game A reference to the current game.
+     */
+    constructor(game: Game) {
         this.game = game;
     }
 
+    /**
+     * Generates save text based on the game instance.
+     * @returns The save text.
+     */
     generateText() {
         const obj = this.generateObject(this.game);
         const unText = this.convertToSections(obj);
@@ -16,15 +103,19 @@ class SaveManager {
         return text;
     }
 
-    generateObject() {
-        const g = this.game;
+    /**
+     * Generates an intermediate-save object basen on the game instance.
+     * @param g A reference to the current game.
+     * @returns the intermediate-save object.
+     */
+    generateObject(g: Game): SaveObject {
         return {
             coins: g.coins,
             totalCoins: g.totalCoins,
-            buildings: g.buildings,
+            buildings: <SaveObject["buildings"]>g.buildings,
             bought: g.bought,
             achievements: g.achievements,
-            total: g.total,
+            total: <SaveObject["total"]>g.total,
             clicks: g.clicks,
             startDate: g.startDate,
             coinsDestroyed: g.coinsDestroyed,
@@ -32,15 +123,29 @@ class SaveManager {
         }
     }
 
-    simplifyEffects(effects) {
+    /**
+     * Simplifies an array of effects.
+     * @param effects Effects to simplify.
+     * @returns An array of simplified effects.
+     */
+    simplifyEffects(effects: Effect[]): SimplifiedEffects[] {
         return effects.map(e => ({id: e.type, duration: e.duration}));
     }
 
-    desimplifyEffects(effects) {
-        return effects.map(e => new Effect(e.id, e.duration, this.game))
+    /**
+     * Desimplifies an array of simplified effects.
+     * @param effects Effects to desimplify.
+     * @returns An array of desimplified effects.
+     */
+    desimplifyEffects(effects: SimplifiedEffects[]): Effect[] {
+        return effects.map(e => new Effect(e.id as Effect["type"], e.duration, this.game))
     }
 
-    generateFreshObject() {
+    /**
+     * Creates a new save object and returns it.
+     * @returns The clean-slate object.
+     */
+    generateFreshObject(): SaveObject {
         return {
             coins: 0,
             totalCoins: 0,
@@ -55,10 +160,24 @@ class SaveManager {
         }
     }
 
-    loadText(code) {
+    /**
+     * Loads save text into the game instance.
+     * @param code 
+     * @returns There are three possible return values:\
+     * |Returned|Description|
+     * |:-------------|:--------------------------------------------------|
+     * |`null`| It was rejected and already known to not work at all. It was not done by accident.|
+     * |`false`| It was rejected but had to be checked before.|
+     * |`true`| It was accepted and is loaded into the game.|
+     */
+    loadText(code: string) {
         if (code === "coinclick") return null;
         try {
             const string = this.decrypt(code);
+
+            if (string === null) {
+                throw new TypeError("Decryption of the save failed.");
+            }
 
             const data = this.convertToObject(string);
             this.loadObject(data);
@@ -70,7 +189,11 @@ class SaveManager {
         }
     }
 
-    loadObject(data) {
+    /**
+     * Loads a save-object into the game instance.
+     * @param data The save-object.
+     */
+    loadObject(data: SaveObject) {
         const loadIn = [
             "coins",
             "totalCoins",
@@ -83,6 +206,11 @@ class SaveManager {
         ]
 
         const noKey = loadIn.filter(key => {
+            // We need this, otherwise TypeScript will throw this error:
+            // T7053:
+            // Element implicitly has an 'any' type because expression of type 'string' can't be used to index type 'SaveObject'.
+            // No index signature with a parameter of type 'string' was found on type 'SaveObject'.
+            // @ts-expect-error
             const obj = data[key];
             return (typeof obj === "number" && isNaN(obj)) || obj === null || obj === undefined
         });
@@ -95,16 +223,22 @@ class SaveManager {
                 case "effects":
                     this.game.effects = [];
                     for (const e of data.effects) {
-                        this.game.addEffect(e.id, e.duration);
+                        this.game.addEffect(<EffectType>e.id, e.duration);
                     }
                     break;
                 default:
+                    // @ts-expect-error
                     this.game[key] = data[key];
             }
         }
     }
 
-    convertToSections(obj) {
+    /**
+     * Converts a save-object into sections.
+     * @param obj Save-object to convert.
+     * @returns Sections of the object.
+     */
+    convertToSections(obj: SaveObject) {
         let text = "";
 
         text += "c:" + obj.coins + ":";
@@ -121,20 +255,35 @@ class SaveManager {
         return text;
     }
 
-    textToArray(str) {
+    /**
+     * Splits text into sections.
+     * @param str Section text to convert to array.
+     * @returns Array of sections
+     */
+    textToArray(str: string) {
         if (!str) return [];
         return str.split(";");
     }
 
-    effectsToText(effects) {
+    /**
+     * Converts simplified effects into text.
+     * @param effects Effects to convert.
+     * @returns Resulting text.
+     */
+    effectsToText(effects: SimplifiedEffects[]) {
         return effects.map(({id, duration}) => id + ";" + duration).join(";");
     }
 
-    textToKeypairs(str) {
+    /**
+     * Converts text into key-pairs.
+     * @param str Text to convert.
+     * @returns Keypairs of the text.
+     */
+    textToKeypairs(str: string) {
         if (str === "") return {};
         // Always {...key: number,...}
         const fragments = str.split(";");
-        const obj = {};
+        const obj: {[key: string]: number} = {};
         for (let i = 0; i < fragments.length; i += 2) {
             const [key, value] = [fragments[i], fragments[i + 1]];
             if (!key) continue;
@@ -143,11 +292,20 @@ class SaveManager {
         return obj;
     }
 
-    assert(bool) {
+    /**
+     * Asserts a certain boolean expression. If it evaluates to a `falsy` value, an assertion error is thrown.
+     * @param bool The expression
+     */
+    assert(bool: boolean) {
         if (!bool) throw new Error("Assertion failed.");
     }
 
-    convertToObject(str) {
+    /**
+     * Converts decrypted save text into a save-object
+     * @param str Save text to convert.
+     * @returns A save-object.
+     */
+    convertToObject(str: string) {
         const fragments = str.split(":");
         const obj = this.generateFreshObject();
         for (let i = 0; i < fragments.length; i += 2) {
@@ -166,7 +324,7 @@ class SaveManager {
                 case "bu":
                     // Buildings
                     obj.buildings = this.textToKeypairs(value);
-                    this.assert(obj.buildings);
+                    this.assert(!!obj.buildings);
                     break;
                 case "bo":
                     // Bought upgrades
@@ -181,7 +339,7 @@ class SaveManager {
                 case "t":
                     // Total coins (from buildings)
                     obj.total = this.textToKeypairs(value);
-                    this.assert(obj.total);
+                    this.assert(!!obj.total);
                     break;
                 case "cl":
                     // Clicks
@@ -209,7 +367,12 @@ class SaveManager {
         return obj;
     }
 
-    textToEffects(str) {
+    /**
+     * Converts text into simplified effects
+     * @param str Text to convert.
+     * @returns The resulting simplified effects.
+     */
+    textToEffects(str: string) {
         const fragments = str.split(";");
         let effects = [];
 
@@ -222,15 +385,28 @@ class SaveManager {
         return effects;
     }
 
-    arrayToText(arr) {
+    /**
+     * Converts an array of sections into text.
+     */
+    arrayToText(arr: string[]) {
         return arr.join(";");
     }
 
-    keypairsToText(obj) {
+    /**
+     * Converts key-pairs into text.
+     * @param obj Key-pairs to convert.
+     * @returns The resulting object.
+     */
+    keypairsToText(obj: {[key: string]: number}) {
         return Object.entries(obj).map(([k, v]) => k + ";" + v).join(";");
     }
 
-    encrypt(text) {
+    /**
+     * Encrypts decrypted save text. Does nothing if `encryptedMode` is `false`.
+     * @param text Save text to encrypt.
+     * @returns Encrypted save text.
+     */
+    encrypt(text: string) {
         if (!this.encryptedMode) return text;
         const base64 = btoa(text);
 
@@ -250,7 +426,12 @@ class SaveManager {
         return encrypted;
     }
 
-    decrypt(text) {
+    /**
+     * Decrypts encrypted save text. Does nothing if `encryptedMode` is `false`.
+     * @param text Save text to decrypt.
+     * @returns Decrypted save text.
+     */
+    decrypt(text: string) {
         if (!this.encryptedMode) return text;
         if (text.startsWith("coin") && text.endsWith("click")) {
             const start = text.slice(4, -5);
@@ -269,6 +450,9 @@ class SaveManager {
         }
     }
 
+    /**
+     * Loads a save from a file. A file picker will open.
+     */
     loadFromFile() {
         const input = document.createElement("input");
         input.setAttribute("type", "file");
@@ -276,7 +460,7 @@ class SaveManager {
         input.addEventListener('change', async () => {
             const {files} = input;
 
-            if (files.length) {
+            if (files && files.length) {
                 const file = files[0];
 
                 const text = await file.text();
@@ -289,10 +473,17 @@ class SaveManager {
         input.click();
     }
 
-    async saveToFile(code) {
+    /**
+     * Saves the code into a file.
+     * @param code The code to save.
+     */
+    async saveToFile(code: string) {
         // We can use the File System API if available.
+        // @ts-ignore
+        // We need @ts-ignore to not throw an error; this API does not exist in Firefox and exists in Chrome.
         if (window.showSaveFilePicker) {
             try {
+                // @ts-ignore
                 const handle = await window.showSaveFilePicker({
                     suggestedName: this.SUGGESTED,
                     types: [
@@ -319,7 +510,11 @@ class SaveManager {
         }
     }
 
-    saveToDownloads(code) {
+    /**
+     * Downloads a file of code.
+     * @param code The code to download.
+     */
+    saveToDownloads(code: string) {
         const blob = new Blob(code.split("\n"), {
             type: 'text/plain'
         });
@@ -335,6 +530,10 @@ class SaveManager {
         document.body.removeChild(a);
     }
 
+    /**
+     * Saves save text into local storage.
+     * @returns If saving to local storage was successful.
+     */
     saveToStorage() {
         const code = this.generateText();
         try {
@@ -345,11 +544,17 @@ class SaveManager {
         return true;
     }
 
+    /**
+     * Loads save text from local storage.
+     */
     loadFromStorage() {
         const data = window.localStorage.getItem("coin-clicker.save");
         if (data) this.loadText(data);
     }
 
+    /**
+     * Wipe all game data, and start fresh.
+     */
     wipe() {
         const obj = this.generateFreshObject();
         this.loadObject(obj);

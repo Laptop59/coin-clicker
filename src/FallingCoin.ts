@@ -73,11 +73,11 @@ class FallingCoin {
     constructor (canvas: HTMLCanvasElement, imager: CoinImager, game: Game) {
         this.x = Math.random();
         this.canvas = canvas;
-        this.ctx = canvas.getContext("2d");
+        this.ctx = <CanvasRenderingContext2D>canvas.getContext("2d");
         this.game = game;
 
         this.setSpecial();
-        this.ci = imager.getImage(this.id)
+        this.ci = <HTMLImageElement>imager.getImage(this.id)
     }
 
     /**

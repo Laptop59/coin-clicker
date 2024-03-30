@@ -94,4 +94,7 @@ const buildings: Building[] = [
     }
 ]
 
-export default buildings;
+export {
+    buildings as default,
+    Building
+}

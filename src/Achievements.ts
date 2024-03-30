@@ -360,6 +360,7 @@ for (let c of Object.values(categorizedAchievements)) {
 }
 
 export {
-    categorizedAchievements,
-    achievements
+    categorizedAchievements as default,
+    achievements,
+    Achievement
 };

@@ -280,4 +280,7 @@ const upgrades: Upgrade[] = [
     },
 ];
 
-export default upgrades;
+export {
+    upgrades as default,
+    Upgrade
+};

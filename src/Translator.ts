@@ -112,7 +112,7 @@ class Translator {
      * @param isPlural Whether it wants the plural version or not.
      * @returns The translated string of the building.
      */
-    formatBuilding(id: string, isPlural: boolean) {
+    formatBuilding(id: string, isPlural: boolean = false) {
         return this.format("building." + id + (isPlural ? ".plural" : ".singular"));
     }
 
