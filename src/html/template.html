@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Coin Clicker</title>
+        <script src="./bundle.js" defer></script>
+        <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    </head>
+
+    <body>
+        <div style="z-index: 1000000" class="loadScreen">
+            <h1>Loading Coin Clicker...</h1>
+        </div>
+        <div style="visibility: hidden" class="audioWrapper">
+            <!-- audio node is inserted here -->
+        </div>
+        <div class="canvas-wrapper">
+            <div class="header">
+                <h1 class="coins-header">
+                    <div></div>
+                    <span></span>
+                </h1>
+                <h3 class="cpc-header">
+                    <div></div>
+                    <span></span>
+                </h3>
+                <h3 class="cps-header">
+                    <div></div>
+                    <span></span>
+                </h3>
+            </div>
+            <canvas class="canvas"></canvas>
+            <span class="savetext"><span>SAVED</span></span>
+            <div class="effects"><div></div></div>
+        </div>
+        <div class="middle-wrapper">
+            <div class="tab-wrapper">
+                <div>
+                    <button type="stats">Stats</button>
+                    <button type="options">Options</button>
+                </div>
+            </div>
+            <div class="work-wrapper">
+                <div class="stats-wrapper">
+                    <p>Coins currently owned: <coin></coin><span stat="ownedCoins">...</span></p>
+                    <p>Total coins made: <coin></coin><span stat="totalCoins">...</span></p>
+                    <p>Raw coins per click: <icon x="1" y="0"></icon><span stat="rawCoinsPerClick">...</span></p>
+                    <p>Raw coins per second: <icon x="1" y="0"></icon><span stat="rawCoinsPerSec">...</span></p>
+                    <p>Clicks done: <icon x="0" y="1"></icon><span stat="clicks">...</span></p>
+                    <p>Start Date: <span stat="startDate">...</span></p>
+                    <p>Coins Destroyed: <icon x="2" y="0"></icon><span stat="coinsDestroyed">...</span></p>
+                    <br>
+                    <p>Buildings: <span stat="buildings">...</span></p>
+                    <p>Current multiplier percentage: <span stat="multiplier">...</span>%</p>
+                    <h2>Achievements</h2>
+                    <p>Achievements unlocked: <span stat="unlockedAchievements">...</span>/<span stat="totalAchievements">...</span></p>
+                    <p>Achievement multiplier percentage: <span stat="achievementMultiplier">...</span>% (each achievement gives +15%)</p>
+                    <achievements></achievements>
+                </div>
+                <div class="options-wrapper">
+                    <h2>Basic</h2>
+                    <button class="saveGame">Save to browser (CTRL+S)</button>
+                    <br><br><input class="autosave" type="checkbox" checked>Autosave</input><br><br>
+                    <h2>Game Data</h2>
+                    <p>Save your game data <button class="saveGameText">into text</button><button class="saveGameFile">into a file</button>.</p>
+                    <p>Load your game data <button class="loadGameText">from text</button><button class="loadGameFile">from a file</button>.</p>
+                    <h2 style="color: red;">Unsafe</h2>
+                    <button class="wipeGame">Wipe save</button>
+                </div>
+                <div class="achievements"><div class="cover"></div></div>
+            </div>
+        </div>
+        <div class="buildings-wrapper">
+            <span>Upgrades</span>
+            <div class="upgrades"></div>
+            <br>
+            <span>Buildings</span>
+            <div class="buy-bar">
+                <button value="1">1</button>
+                <button value="10">10</button>
+                <button value="100">100</button>
+            </div>
+            <div class="buildings"></div>
+            <div style="height: 250px"></div>
+        </div>
+        <div class="building-tooltip" style="visibility: hidden;">
+            <div></div>
+            <h2>BUILDING</h2>
+            <br>
+            <br>
+            <p>...</p>
+        </div>
+        <div class="achievement-tooltip" style="visibility: hidden;"><div></div></div>
+        <div class="upgrade-tooltip" style="visibility: hidden;">
+            <div></div>
+            <div className="nameIn"><h2>UPGRADE</h2></div>
+            <br>
+            <br>
+            <p>...</p>
+            <s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</s>
+            <p>...</p>
+            <p class="cost">Cost: </p>
+        </div>
+        <div class="effect-tooltip" style="visibility: hidden;">
+            <h2>EFFECT</h2>
+            <p>Increase production by +0%! :)</p>
+        </div>
+        <div class="achievement" style="visibility: hidden;">
+            <p class="description">...</p>
+            <div class="space"></div>
+            <p class="how">...</p>
+        </div>
+        <div class="dialog" style="visibility: hidden;">
+            <div class="black">
+                <div class="box"></div>
+            </div>
+        </div>
+    </body>
+</html>

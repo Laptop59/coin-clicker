@@ -34,7 +34,6 @@
         "building.lab.plural": "Technological Labs",
         "building.lab.description": "Finds and creates new technology, which all together technologically code in %1.",
         
-
         "achievements.categories.count": "Achievements Unlocked: %1/%2",
         "achievements.category.total_coins": "Total coins",
         "achievements.category.cps": "Coins per second",

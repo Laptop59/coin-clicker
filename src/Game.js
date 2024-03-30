@@ -10,27 +10,89 @@ import Effect from "./Effect";
 import Translator from "./Translator";
 
 class Game {
+    /**
+     * The amount of coins owned by the player.
+     */
     coins = 0
+
+    /**
+     * The total amount of coins made by the player.
+     */
     totalCoins = 0
+
+    /**
+     * The amount of coins made by the player per click.
+     */
     coinsPerClick = 1
+
+    /**
+     * The amount of coins made by the player per second.
+     */
     coinsPerSec = 0
+
+    /**
+     * The previous date in which delta was calculated.
+     */
     oldTime = +new Date()
+
+    /**
+     * Tells if music is currently playing.
+     */
     playingMusic = false;
+
+    /**
+     * The start date of the player.
+     */
     startDate = new Date();
+
+    /**
+     * The amount of coins destroyed by the player (the coins falling down).
+     */
     coinsDestroyed = 0;
 
+    /**
+     * The state of readiness of the game.
+     */
     ready = 0;
+
+    /**
+     * The canvas instance owned by the game.
+     */
     canvas = null;
+
+    /**
+     * Size of the coin.
+     */
     coinSize = 1.5
 
+    /**
+     * Size of the icon.
+     */
     iconSize = 18;
 
+    /**
+     * Images of the game.
+     */
     images = {};
+
+    /**
+     * Buildings owned by the player.
+     */
     buildings = {};
+
+    /**
+     * The upgrades bought by the player.
+     */
     bought = [];
 
+    /**
+     * Number of ticks done by the game.
+     */
     ticks = 0;
 
+    /**
+     * Indicates the buying power of buildings chosen by the user.
+     */
     buyMode = 1;
     
     selectedBuilding = null;
@@ -41,13 +103,23 @@ class Game {
     mouseX = 0;
     mouseY = 0;
 
+    /**
+     * Multiplier caused by achievements.
+     */
     achieveMultiplier = 1;
+
+    /**
+     * Translator owned by the game.
+     */
     translator = new Translator();
 
+    /**
+     * Describes the color of buy modes (powers).
+     */
     buyModeColours = {
-        1:   "black",
-        10:  "#040",
-        100: "#044"
+        1:   "white",
+        10:  "#4c4",
+        100: "#4cc"
     }
 
     rates = {}
@@ -60,6 +132,7 @@ class Game {
 
     effects = [];
     queuedEffects = [];
+    achievements = [];
 
     selectedTab = 0;
 
