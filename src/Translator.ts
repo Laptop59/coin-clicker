@@ -38,7 +38,7 @@ class Translator {
      */
     constructor() {
         // Load all the languages in /languages
-        this.load(require.context('./languages/', false, /\.json/));
+        this.load(require.context('./languages/', false, /\.ts/));
     }
 
     /**
@@ -47,12 +47,43 @@ class Translator {
      */
     private load(languages: __WebpackModuleApi.RequireContext) {
         for (let lang of languages.keys()) {
-            const paths = lang.split("/");
-            const id = paths[paths.length - 1];
-            let data = languages(lang);
-            this.languages[id.split(".json")[0]] = data;
+            const exports = languages(lang);
+            if (!exports) {
+                throwLangError(lang, "No export found.");
+                continue;
+            }
+            const languageInfo = exports.default;
+            if (!languageInfo) {
+                throwLangError(lang, "No default export found.");
+                continue;
+            }
+            if (typeof languageInfo !== "object" || Array.isArray(languageInfo)) {
+                throwLangError(lang, "Language info must be a dictionary.");
+                continue;
+            }
+            if (!languageInfo.id) {
+                throwLangError(lang, "`id` was not found in the language declaration. It must be the language code, e.g. \"en-us\"");
+                continue;
+            }
+            if (!languageInfo.name) {
+                throwLangError(lang, "`name` was not found in the language declaration. It must be the language's name, e.g. \"English\"");
+                continue;
+            }
+            if (!languageInfo.author) {
+                throwLangError(lang, "`author` was not found in the language declaration. It must be the translator, e.g. \"Laptop59\"");
+                continue;
+            }
+            if (!languageInfo.translations) {
+                throwLangError(lang, "`translations` was not found in the language declaration. It must be the translations, e.g. {\"building.cursor.singular\": \"Cursor\"}");
+                continue;
+            }
+            this.languages[languageInfo.id] = languageInfo;
         }
         this.logLanguages();
+
+        function throwLangError(lang: string, error: string) {
+            console.error(`Language error while parsing ${lang}: `, new SyntaxError(error));
+        }
     }
 
     /**
@@ -103,7 +134,7 @@ class Translator {
             }
         }
 
-        return result;
+        return result ?? str;
     }
 
     /**

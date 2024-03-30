@@ -329,6 +329,8 @@ h1 {
     h2 {
         margin: 0;
         float: right;
+        max-width: calc(225px - 48px);
+        text-align: right;
     }
     img {
         position: absolute;

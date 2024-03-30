@@ -2,7 +2,7 @@ import BIG_COIN_SRC from "./images/coin_button.png";
 import BLANK_SRC from "./images/blank_icon.png";
 import buildings, { Building } from "./Buildings";
 import upgrades, { Upgrade } from "./Upgrades";
-import categorizedAchievements, {achievements, Achievement} from "./Achievements";
+import categorizedAchievements, { achievements, Achievement } from "./Achievements";
 import FallingCoin from "./FallingCoin";
 import SaveManager from "./SaveManager";
 import CoinImager from "./CoinImager";
@@ -103,12 +103,12 @@ class Game {
     /**
      * Images of the game.
      */
-    images: {[key: string]: HTMLImageElement} = {};
+    images: { [key: string]: HTMLImageElement } = {};
 
     /**
      * Buildings owned by the player.
      */
-    buildings: {[key: string]: number} = {};
+    buildings: { [key: string]: number } = {};
 
     /**
      * The upgrades bought by the player.
@@ -124,7 +124,7 @@ class Game {
      * Indicates the buying power of buildings chosen by the user.
      */
     buyMode: BuyMode = 1;
-    
+
     /**
      * The selected building which is displayed in its tooltip.
      */
@@ -168,9 +168,9 @@ class Game {
     /**
      * Describes the color of buy modes (powers).
      */
-    buyModeColours: {[key in BuyMode]: string} = {
-        1:   "white",
-        10:  "#4c4",
+    buyModeColours: { [key in BuyMode]: string } = {
+        1: "white",
+        10: "#4c4",
         100: "#4cc"
     };
 
@@ -178,13 +178,13 @@ class Game {
      * The rates of the buildings, but values are in the format\
      * `[(number of coins made per click), (number of coins made per sec)]`.
      */
-    rates: {[key: string]: [number, number]} = {};
+    rates: { [key: string]: [number, number] } = {};
 
     /**
      * The total coins made by the buildings, but values are in the format\
      * `[(number of total coins made per click), (number of total coins made per sec)]`.
      */
-    total: {[key: string]: number} = {};
+    total: { [key: string]: number } = {};
 
     /**
      * The array of falling coins.
@@ -194,7 +194,7 @@ class Game {
     /**
      * The stats which can be displayed.
      */
-    stat: {[key: string]: () => number | string} = {};
+    stat: { [key: string]: () => number | string } = {};
     clicks = 0
 
     /**
@@ -295,7 +295,7 @@ class Game {
         document.addEventListener('keydown', e => {
             if (e.ctrlKey && e.key === 's') {
                 e.preventDefault();
-              
+
                 this.saveToStorage();
             }
         });
@@ -414,17 +414,17 @@ class Game {
         const elem = document.createElement("div");
         this.addToElement(elem, "p", "Are you sure you want to <b style=\"color: red;\">WIPE THIS SAVE</b>?")
         this.showDialog("Wipe Save", elem, ["YES!", "No, cancel this dialog"])
-        .then(opt => {
-            if (!opt) {
-                // Yes
-                this.addToElement(elem, "p", "This action cannot be undone. Are you actually sure?")
-                this.showDialog("Wipe Save", elem, ["YES", "No, cancel this dialog"]).then(opt => {
-                    if (!opt) {
-                        this.saveManager.wipe();
-                    }
-                })
-            }
-        });
+            .then(opt => {
+                if (!opt) {
+                    // Yes
+                    this.addToElement(elem, "p", "This action cannot be undone. Are you actually sure?")
+                    this.showDialog("Wipe Save", elem, ["YES", "No, cancel this dialog"]).then(opt => {
+                        if (!opt) {
+                            this.saveManager.wipe();
+                        }
+                    })
+                }
+            });
     }
 
     /**
@@ -433,7 +433,7 @@ class Game {
      */
     saveGame(medium: SaveMedium) {
         const code = this.saveManager.generateText();
-        
+
         switch (medium) {
             case SaveMedium.FILE:
                 this.saveManager.saveToFile(code);
@@ -450,7 +450,7 @@ class Game {
 
                 this.addToElement(saveDiv, "br")
                 this.showDialog("Save Code", saveDiv);
-            break;
+                break;
         }
     }
 
@@ -471,7 +471,7 @@ class Game {
                 textarea.setAttribute("unresizable", "true");
 
                 this.addToElement(loadDiv, "br")
-                
+
                 const error = this.addToElement(loadDiv, "span");
                 error.setAttribute("color", "red");
 
@@ -484,8 +484,8 @@ class Game {
                             (<HTMLElement>selector(".dialog")).style.visibility = "hidden";
                             break;
                         } else {
-                            selector(".dialog span[color=\"red\"]").innerHTML = 
-                            (result === null ? "Haha. Nice try." : "Save code is invalid.");
+                            selector(".dialog span[color=\"red\"]").innerHTML =
+                                (result === null ? "Haha. Nice try." : "Save code is invalid.");
                         }
                     } else break;
                 }
@@ -538,7 +538,7 @@ class Game {
             selector(".dialog .box").innerHTML = "";
 
             const titleDiv = this.addToElement(<HTMLElement>selector(".dialog .box"), "div");
-            
+
             titleDiv.className = "title";
             titleDiv.textContent = title;
 
@@ -603,9 +603,9 @@ class Game {
     playMusic() {
         if (!this.playingMusic) {
             (<HTMLAudioElement>selector('.music'))
-            .play()
-            .then(() => this.playingMusic = true)
-            .catch(() => {})
+                .play()
+                .then(() => this.playingMusic = true)
+                .catch(() => { })
         }
     }
 
@@ -621,7 +621,20 @@ class Game {
      */
     private doStart() {
         // Start our tick functions.
-        requestAnimationFrame(this.tick.bind(this, +new Date()));
+        requestAnimationFrame(this.tickWithTryCatch.bind(this, +new Date()));
+    }
+
+    /**
+     * Progress the game by a tick (usually in frequency of 60 Hz), with try/catch.
+     * @param time The current date.
+     */
+    tickWithTryCatch(time: number) {
+        try {
+            this.tick(time);
+        } catch(e) {
+            console.error("Unhandled error: ", e);
+        }
+        requestAnimationFrame(this.tickWithTryCatch.bind(this, +new Date()));
     }
 
     /**
@@ -667,11 +680,8 @@ class Game {
         if (this.ticks <= 1) {
             setTimeout((() =>
                 selector(".loadScreen").className = "loadScreen loaded")
-            , 1000);
+                , 1000);
         }
-
-        // Again
-        requestAnimationFrame(this.tick.bind(this, +new Date()));
     }
 
     /**
@@ -770,19 +780,18 @@ class Game {
             const tid = buildings[id].id;
             const icon = unlock ? buildings[id].icon : [0, 4];
             const amount = this.buildings[tid];
-            
+
             // Set the text
             elem.getElementsByTagName("div")[0].innerHTML = "";
-            elem.getElementsByTagName("div")[0].appendChild(this.makeIcon(icon[0], icon[1], 48)) 
+            elem.getElementsByTagName("div")[0].appendChild(this.makeIcon(icon[0], icon[1], 48))
             elem.getElementsByTagName("h2")[0].textContent = (unlock ? this.translator.formatBuilding(tid) : "???");
-            elem.getElementsByTagName("h2")[0].innerHTML += "&nbsp";
-            elem.style.top = (this.mouseY - 75/2) + "px";
+            elem.style.top = (this.mouseY - 75 / 2) + "px";
 
             // Set desc
             elem.getElementsByTagName("p")[0].innerHTML = unlock ?
                 (this.translator.formatBuildingDescription(tid).replace("%1", this.convertToEnglish(<[number, number]>this.rates[tid]?.map(x => x * this.multiplier)) +
                     (amount > 1 ? (", each making " + this.convertToEnglish(<[number, number]>this.rates[tid]?.map(x => x * this.multiplier / this.buildings[tid]))) : "")) +
-                    (amount ? ("<b>" + this.commify(this.total[tid]) + " coins made so far.</b>") : ""))
+                    (amount ? ("<b>&nbsp;" + this.commify(this.total[tid]) + " coins made so far.</b>") : ""))
                 : "???";
         } else {
             (<HTMLElement>document.getElementsByClassName("building-tooltip")[0]).style.visibility = "hidden";
@@ -835,10 +844,10 @@ class Game {
             elem.style.visibility = "visible";
 
             const icon = upgrades[id].icon;
-            
+
             // Set the text
             elem.getElementsByTagName("div")[0].innerHTML = "";
-            elem.getElementsByTagName("div")[0].appendChild(this.makeIcon(icon[0], icon[1], 48)) 
+            elem.getElementsByTagName("div")[0].appendChild(this.makeIcon(icon[0], icon[1], 48))
             elem.getElementsByTagName("h2")[0].textContent = upgrades[id].name;
             elem.style.top = (this.mouseY + 25) + "px";
             elem.style.left = (this.mouseX - 25 - 245) + "px";
@@ -850,7 +859,7 @@ class Game {
                 upgrades[id].use
             elem.getElementsByTagName("span")[0].textContent =
                 this.commify(upgrades[id].cost, false, true)
-                elem.getElementsByTagName("span")[0].className = afford ? "afford" : "noafford"
+            elem.getElementsByTagName("span")[0].className = afford ? "afford" : "noafford"
         } else {
             (<HTMLElement>document.getElementsByClassName("upgrade-tooltip")[0]).style.visibility = "hidden";
         }
@@ -886,8 +895,8 @@ class Game {
     animateCoin(delta: number) {
         this.coinSize += (1.5 - this.coinSize) / 4;
 
-        const {width, height} = this.canvas;
-        const {width: W, height: H} = this.images.big_coin;
+        const { width, height } = this.canvas;
+        const { width: W, height: H } = this.images.big_coin;
         const WW = W * this.coinSize;
         const HH = H * this.coinSize;
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
@@ -931,7 +940,7 @@ class Game {
     canvasClick(e: MouseEvent) {
         if (this.ready < 2) return;
 
-        const {clientX: x, clientY: y} = e;
+        const { clientX: x, clientY: y } = e;
         // It already lines up.
         // Calculate our offsets.
         const X = x - (this.canvas.width / 2);
@@ -939,8 +948,8 @@ class Game {
 
         const A = this.images.big_coin.width / 2 * this.coinSize;
         const B = this.images.big_coin.height / 2 * this.coinSize;
-        
-        if (X*X/(B*B) + Y*Y/(A*A) <= 1) {
+
+        if (X * X / (B * B) + Y * Y / (A * A) <= 1) {
             return this.coinClick();
         }
 
@@ -970,9 +979,9 @@ class Game {
         this.coinSize = 0.75 * 1.5;
         this.add(this.coinsPerClick * this.multiplier);
         this.clicks++;
-        
+
         for (let building of buildings) {
-            const {id} = building;
+            const { id } = building;
             if (this.rates[id])
                 this.addToTotal(id, this.multiplier * this.rates[id][0])
         }
@@ -990,7 +999,7 @@ class Game {
         const img = new Image();
         img.src = BLANK_SRC;
         img.className = "icon";
-        img.setAttribute("style", `background-position: ${-x * size}px ${-y * size}px; width: ${size}px; height: ${size}px; background-size: ${size/128 * 2048}px`);
+        img.setAttribute("style", `background-position: ${-x * size}px ${-y * size}px; width: ${size}px; height: ${size}px; background-size: ${size / 128 * 2048}px`);
         return img;
     }
 
@@ -999,7 +1008,7 @@ class Game {
      * For example: `1.234e12` -----> `1.234 trillion`.
      * @param number The number to format.
      * @param br Whether or not the number is rounded down.
-     * @param nodot If `true`, there will be no dot added when the number is
+     * @param nodot If `true`, there will be no dot which is added when the number is
      * - less than `10`
      * - is a decimal
      * @returns the formatted number
@@ -1016,10 +1025,10 @@ class Game {
 
         const illion = Math.floor(Math.log10(number) / 3);
         const starting = Math.pow(10, illion * 3);
-        
+
         const float = Math.max(Math.floor(number / starting * 1000) / 1000, 1);
 
-        return float.toFixed(3) + (br ? "<span>" : " ") + this.illionSuffix(illion - 1) + (br ? "</span>" : "");
+        return float.toFixed(3) + (br ? "&nbsp;<span>" : " ") + this.illionSuffix(illion - 1) + (br ? "</span>" : "");
     }
 
     /**
@@ -1093,14 +1102,14 @@ class Game {
      */
     nextBuildingsCost(type: string, amount = 1) {
         let cost = 0;
-        const {cost: baseCost, increase: multiplier} = assert(this.getBuildingObject(type));
+        const { cost: baseCost, increase: multiplier } = assert(this.getBuildingObject(type));
         for (let i = 0; i < amount; i++) {
             const total = this.getBuildings(type) + i;
             cost += baseCost * Math.pow(multiplier, total);
         }
         return cost;
     }
-    
+
     /**
      * Add a particular amount of a building.
      * @param type The type of the building.
@@ -1155,7 +1164,7 @@ class Game {
                 this.effects.splice(index, 1);
 
                 let elem;
-                while (elem = selector(".effect-" + effect.type))
+                while (elem = document.querySelector(".effect-" + effect.type))
                     selector(".effects >div").removeChild(elem)
             } else {
                 effect.tick(delta);
@@ -1171,6 +1180,15 @@ class Game {
             }
             index++;
         }
+    }
+
+    /**
+     * Check whether or not the player has the effect.
+     * @param id ID of the effect.
+     * @returns whether or not the player has it.
+     */
+    hasEffect(id: EffectType) {
+        return this.effects.some(effect => effect.type == id);
     }
 
     /**
@@ -1272,7 +1290,7 @@ class Game {
         const value = this.coinsPerSec * this.unboostedMultiplier;
         return isNaN(value) ? 0 : value;
     }
-    
+
     /**
      * The current coins per click.
      */
@@ -1459,7 +1477,7 @@ class Game {
         titlediv.className = "titlediv";
 
         const title = document.createElement("h1");
-        title.textContent = locked ? "???" : achievement.name;
+        title.textContent = locked ? "???" : this.translator.format("achievements.name." + achievement.id);
         titlediv.appendChild(title);
         elem.append(titlediv);
 
@@ -1467,8 +1485,8 @@ class Game {
         const adiv = document.createElement("div");
         adiv.className = "adiv";
         adiv.innerHTML = A;
-        selector(".description", adiv).innerHTML = locked ? "" : achievement.description;
-        selector(".how", adiv).innerHTML = locked ? "" : achievement.how;
+        selector(".description", adiv).innerHTML = locked ? "" : this.translator.format("achievements.description." + achievement.id);
+        selector(".how", adiv).innerHTML = locked ? "" : this.translator.format("achievements.how." + achievement.id);
         elem.append(adiv);
 
         if (!isTooltip) {
@@ -1486,7 +1504,7 @@ class Game {
                     other.setAttribute("recent", (i++).toString());
                 });
             });
-        
+
             elem.append(close);
             elem.setAttribute("recent", "0")
             selectorAll(".achievements >div >div").forEach(other => {
