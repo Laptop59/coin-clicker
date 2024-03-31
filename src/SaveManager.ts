@@ -81,7 +81,7 @@ class SaveManager {
     /**
      * Whether the save code should be encrypted (with a non-standard algorithm).
      */
-    encryptedMode = false;
+    encryptedMode = process.env.NODE_ENV === "production";
 
     /**
      * Creates a new `SaveManager`.
