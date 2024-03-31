@@ -838,8 +838,8 @@ class Game {
                 effectTooltip.style.top = (this.mouseY - 25 - effectTooltip.clientHeight) + "px";
 
                 const meta = e.getMeta();
-                selector("h2", effectTooltip).textContent = meta[0];
-                selector("p", effectTooltip).innerHTML = meta[1];
+                selector("h2", effectTooltip).textContent = this.translator.format(meta[0]);
+                selector("p", effectTooltip).innerHTML = this.translator.format(meta[1]);
             } else
                 effectTooltip.style.visibility = "hidden";
         } else {
