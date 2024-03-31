@@ -1,5 +1,6 @@
 import Translator from "./Translator";
 import music from "./sounds/music.wav";
+const {version} = require("../package.json");
 
 /**
  * This class builds the HTML for the game.
@@ -267,7 +268,10 @@ class HtmlBuilder {
             this.pStat(translator, 'stats.unlocked_achievements', '<span stat="unlockedAchievements">...</span>', '<span stat="totalAchievements">...</span>'),
             this.pStat(translator, 'stats.achievement_multiplier', '<span stat="achievementMultiplier">...</span>'),
 
-            '<achievements></achievements>'
+            '<achievements></achievements>',
+            '<br><br>',
+
+            `<version>v${version}</version>`
         ].join("");
 
         let optionsWrapper = document.createElement("div");

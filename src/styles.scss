@@ -17,6 +17,13 @@ $TB: 2;
     src: url("./fonts/NotoSans.ttf");
 }
 
+version {
+    font-size: 20px;
+    text-align: center;
+    display: block;
+    width: 100%;
+}
+
 .savetext {
     opacity: 0;
     color: black;
