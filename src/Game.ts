@@ -425,6 +425,7 @@ class Game {
                     this.showDialog("Wipe Save", elem, [yes, no]).then(opt => {
                         if (!opt) {
                             this.saveManager.wipe();
+                            this.saveManager.wipe();
                         }
                     })
                 }
@@ -753,7 +754,11 @@ class Game {
      * Update text.
      */
     updateText() {
-        document.getElementsByClassName("coins-header")[0].getElementsByTagName("span")[0].innerHTML = "" + this.commify(this.coins, true);
+        const coinsHeader = document.getElementsByClassName("coins-header")[0];
+        const textCoins = this.commify(this.coins, true);
+        const big = (textCoins.length > 12 ? 1 : 0).toString();
+        coinsHeader.setAttribute("big", big);
+        coinsHeader.getElementsByTagName("span")[0].innerHTML = "" + textCoins;
         document.getElementsByClassName("cpc-header")[0].getElementsByTagName("span")[0].innerHTML = this.translator.format("coins.per_click", this.commify(this.mulCoinsPerClick));
         document.getElementsByClassName("cps-header")[0].getElementsByTagName("span")[0].innerHTML = this.coinsPerSec ? this.translator.format("coins.per_second", this.commify(this.mulCoinsPerSec)) : "";
         (<HTMLElement>document.getElementsByClassName("cps-header")[0]).style.visibility = this.coinsPerSec ? "" : "hidden";
@@ -763,7 +768,7 @@ class Game {
             elem.getElementsByTagName("div")[0].getElementsByTagName("span")[0].textContent = this.commify(this.nextBuildingsCost(building.id, this.buyMode));
             elem.getElementsByTagName("div")[0].getElementsByTagName("span")[0].style.color = this.buyModeColours[this.buyMode]
 
-            if (this.totalCoins >= building.cost) {
+            if (this.totalCoins >= building.cost || this.coins >= building.cost) {
                 elem.getElementsByTagName("h2")[0].textContent = this.translator.formatBuilding(building.id);
                 elem.getElementsByClassName("big")[0].className = "icon big unlock";
             } else {
@@ -797,11 +802,7 @@ class Game {
             elem.style.top = (this.mouseY - 75 / 2) + "px";
 
             // Set desc
-            elem.getElementsByTagName("p")[0].innerHTML = unlock ?
-                (this.translator.formatBuildingDescription(tid).replace("%1", this.convertToEnglish(<[number, number]>this.rates[tid]?.map(x => x * this.multiplier)) +
-                    (amount > 1 ? (", each making " + this.convertToEnglish(<[number, number]>this.rates[tid]?.map(x => x * this.multiplier / this.buildings[tid]))) : "")) +
-                    (amount ? ("<b>&nbsp;" + this.commify(this.total[tid]) + " coins made so far.</b>") : ""))
-                : "???";
+            elem.getElementsByTagName("p")[0].innerHTML = unlock ? this.translator.formatBuildingDescription(tid, amount, <[number, number]>this.rates[tid]?.map(x => x * this.multiplier), this.total[tid]) : "???";
         } else {
             (<HTMLElement>document.getElementsByClassName("building-tooltip")[0]).style.visibility = "hidden";
         }

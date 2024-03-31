@@ -3,6 +3,13 @@
  * 
  * - This is the translation file for English.
  * - It must return an object:
+ * id: ISSO name of the language, for example en-us,
+ * name: name of the language in that language, for example English,
+ * author: translator contributor(s) of the language, for example Laptop59,
+ * commify: a function that commifies a number (or shortens it)
+ * format_building_description: a function that formats descriptions.
+ * format_date: a function that formats a date (but not time!!!)
+ * translations:
  *      where the KEYS are the translation IDs
  *      and the VALUES are the actual translation for THAT language.
  */
@@ -39,13 +46,49 @@ const TRANSLATION = {
 
         return float.toFixed(3) + (br ? "&nbsp;<span>" : " ") + illionSuffix(illion - 1) + (br ? "</span>" : "");
     },
+    "format_building_description": function (
+        description: string,
+        amount: number,
+        rates: [number, number],
+        total: number
+    ) {
+        /**
+         * Converts a tuple of `CPC` and `CPS` respectively to a formatted string.
+         * @param cpccps The tuple.
+         * @param extra Extra info to add at the end, if necessary.
+         * @returns The formatted string.
+         */
+        function convertToEnglish(cpccps: [number, number], extra = "") {
+            if (!cpccps) return "coins";
+            const [cpc, cps] = cpccps;
+            const parts = []
+            if (cpc > 0) {
+                parts.push(TRANSLATION.commify(cpc, false, true) + " " + (cpc === 1 ? "coin" : "coins") + " per click")
+            }
+            if (cps > 0) {
+                parts.push(TRANSLATION.commify(cps, false, true) + " " + (cps === 1 ? "coin" : "coins") + " per second")
+            }
+            return "<b>" + parts.join(" and ") + extra + "</b>";
+        }
 
-    "format_date" : function (date: Date) {
+        let each = "", so_far = "";
+        if (amount > 1) {
+            each = ", each making " + convertToEnglish(<[number, number]>rates.map(x => x / amount));
+        };
+        if (amount) {
+            so_far = "<b>&nbsp;" + this.commify(total) + " coins made so far.</b>";
+        }
+
+        return description.replace(
+            "%1",
+            convertToEnglish(rates) + each
+        ) + so_far;
+    },
+    "format_date": function (date: Date) {
         const months = ["January", "Feburary", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
         return months[date.getMonth()] + " " + date.getDate() + ", " + date.getFullYear();
     },
-
     "translations": {
         ///////////
         // COINS //
@@ -169,7 +212,7 @@ const TRANSLATION = {
         "dialogs.error.info": "We're really sorry for the inconvience this has caused, but the game has experienced a fatal error.<br><br>Please reload your page.",
         "dialogs.error.reload": "Reload",
 
-        
+
         //////////////
         // UPGRADES //
         //////////////

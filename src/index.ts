@@ -19,8 +19,11 @@ function init() {
     const game = new Game(translator);
 
     // Add a way to access the game, for now.
-    // @ts-ignore
-    window.Game = game;
+    // But only if we are in development mode.
+    if (process.env.NODE_ENV === "development") {
+        // @ts-ignore
+        window.Game = game;
+    }
 
     // Start the game loop.
     game.start();

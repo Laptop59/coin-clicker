@@ -38,6 +38,16 @@ interface Language {
     format_date: (date: Date) => string,
 
     /**
+     * Formats a building description.
+     * @param description The formatted string. (it should be already formatted, but the parameters NOT filled.)
+     * @param amount Number of buildings owned.
+     * @param rates The total rates of the type of the building.
+     * @param total Number of coins made by the building type.
+     * @returns A formatted description.
+     */
+    format_building_description: (description: string, amount: number, rates: [number, number], total: number) => string
+
+    /**
      * The translations.
      */
     translations: {
@@ -112,6 +122,9 @@ class Translator {
             if (!languageInfo.commify) {
                 throwLangError(lang, "`commify` was not found in the language declaration. It must be a commifier function, e.g. (number: number) => number.");
                 continue;
+            }
+            if (!languageInfo.format_building_description) {
+                throwLangError(lang, "`format_building_description` was not found in the language declaration. It must be a building-description formatter, e.g. (description: string, amount: number, rates: [number, number], total: number, buildings: number) => ... .");
             }
             if (!languageInfo.format_date) {
                 throwLangError(lang, "`format_date` was not found in the language declaration. It must be a date formatter, e.g. (date: Date) => date.toString().");
@@ -209,7 +222,7 @@ class Translator {
 
             if (level > 1) {
                 console.error("[TRANSLATION] Unknown key ", str);
-                return [str, []];
+                return [str, args];
             } else {
                 console.warn("[TRANSLATION] Missing translation for key " + str);
                 return this.fillArgs(fallbackResult, args);
@@ -251,8 +264,9 @@ class Translator {
      * @param id ID of the building.
      * @returns The translated string of the building's description.
      */
-    formatBuildingDescription(id: string) {
-        return this.format("building." + id + ".description");
+    formatBuildingDescription(id: string, amount: number, rates: [number, number], total: number) {
+        const description = this.format("building." + id + ".description");
+        return (this.getCurrent() ?? this.getFallback())?.format_building_description(description, amount, rates, total);
     }
 
     /**

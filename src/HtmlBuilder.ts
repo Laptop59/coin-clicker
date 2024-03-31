@@ -334,8 +334,6 @@ class HtmlBuilder {
     static pStatWithImportance(translator: Translator, translationId: string, ...args: string[]) {
         const p = document.createElement("p");
         const tuple = translator.formatAsTuple(translationId, ...args);
-
-        console.log(tuple)
         p.innerHTML = tuple[0];
         tuple[1].forEach(element => {
             p.innerHTML += element;
