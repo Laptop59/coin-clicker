@@ -22,7 +22,7 @@ class HtmlBuilder {
      */
     static generate(translator: Translator): HTMLDivElement[] {
         return [
-            this.loadingDiv(),
+            this.loadingDiv(translator),
             this.audioWrapper(
                 this.loopingMusic()
             ),
@@ -31,7 +31,7 @@ class HtmlBuilder {
             this.buildingsWrapper(translator),
             this.buildingTooltip(),
             this.achievementTooltip(),
-            this.upgradeTooltip(),
+            this.upgradeTooltip(translator),
             this.effectTooltip(),
             this.achievement(),
             this.dialog()
@@ -45,13 +45,13 @@ class HtmlBuilder {
      *  </div>
      * @returns {HTMLDivElement}
      */
-    static loadingDiv(): HTMLDivElement {
+    static loadingDiv(translator: Translator): HTMLDivElement {
         let div = document.createElement("div");
         div.style.zIndex = "1000000";
         div.className = "loadScreen";
 
         let header = document.createElement("h1");
-        header.textContent = "Loading Coin Clicker...";
+        header.textContent = translator.format("loading_screen.loading_coin_clicker");
 
         div.appendChild(header);
         
@@ -68,7 +68,6 @@ class HtmlBuilder {
     static loopingMusic(): HTMLAudioElement {
         var node = document.createElement("audio");
         node.className = "music";
-        node.controls = true;
         node.loop = true;
     
         var source = document.createElement("source");
@@ -81,19 +80,39 @@ class HtmlBuilder {
     }
 
     /**
+     * Generate an audio node that can be played.
+     * <audio class="<class>">
+     *     <source src="<sound>" type="audio/wav">
+     * </audio>
+     * @returns {HTMLAudioElement}
+     */
+    static audioNode(className: string, src: string): HTMLAudioElement {
+        var node = document.createElement("audio");
+        node.className = className;
+    
+        var source = document.createElement("source");
+        source.src = src;
+        source.type = "audio/wav";
+    
+        node.appendChild(source);
+    
+        return node;
+    }
+
+    /**
      * Generate an audio wrapper.
-     * @param {HTMLAudioElement} audioElement The audio element to be wrapped.
+     * @param {...HTMLAudioElement[]} audio The audio elements to be wrapped.
      * @returns {HTMLDivElement}
      * <div style="visibility: hidden" class="audioWrapper">
      *     <!-- audio node is inserted here -->
      * </div>
      */
-    static audioWrapper(audioElement: HTMLAudioElement): HTMLDivElement {
+    static audioWrapper(...audio: HTMLAudioElement[]): HTMLDivElement {
         let div = document.createElement("div");
         div.style.visibility = "hidden";
         div.className = "audioWrapper";
 
-        div.appendChild(audioElement);
+        audio.forEach(elem => div.appendChild(elem));
         
         return div;
     }
@@ -278,8 +297,11 @@ class HtmlBuilder {
         optionsWrapper.className = "options-wrapper";
         optionsWrapper.innerHTML = [
             this.h2Stat(translator, 'options.basic_title'),
-            `<button class="saveGame">${translator.format("options.save_to_browser")}</button>`,
+            `<button class="saveGame">${translator.format("options.save_to_browser")}</button><br><br>`,
+            `<button class="changeLanguage">${translator.format("options.change_language")}</button>`,
             `<br><br><input class="autosave" type="checkbox" checked>${translator.format("options.autosave")}</input><br><br>`,
+            `<input class="loopMusic" type="checkbox" checked>${translator.format("options.loop_music")}</input><br><br>`,
+            `<input class="playSounds" type="checkbox" checked>${translator.format("options.play_sounds")}</input><br><br>`,
             this.h2Stat(translator, 'options.game_data_title'),
 
             this.pStatWithImportance(translator,
@@ -459,7 +481,7 @@ class HtmlBuilder {
             <p class="cost">Cost: </p>
         </div>
      */
-    static upgradeTooltip(): HTMLDivElement {
+    static upgradeTooltip(translator: Translator): HTMLDivElement {
         let div = document.createElement("div");
         div.className = "upgrade-tooltip";
         div.style.visibility = "hidden";
@@ -471,7 +493,7 @@ class HtmlBuilder {
             '<p>...</p>',
             '<s>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</s>',
             '<p>...</p>',
-            '<p class="cost">Cost: </p>',
+            '<p class="cost">' + translator.format("cost") + '</p>',
         ].join("");
         return div;
     }

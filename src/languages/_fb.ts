@@ -15,6 +15,7 @@
  */
 
 const TRANSLATION = {
+    "is_fallback": true,
     "id": "_fb",
     "name": "Fallback",
     "author": "Laptop59",

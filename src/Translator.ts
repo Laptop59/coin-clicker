@@ -53,6 +53,11 @@ interface Language {
     translations: {
         [key: string]: string
     }
+
+    /**
+     * Is it fallback? It will not be shown in game if so.
+     */
+    is_fallback?: boolean
 }
 
 /**
@@ -67,7 +72,7 @@ class Translator {
     /**
      * The selected language.
      */
-    selected = "en-us";
+    selected = window.localStorage.getItem("coin-clicker.language") ?? "en-us";
 
     /**
      * The fallback language chosen. This is used, for example, if a translation for another language doesn't exist.
@@ -286,6 +291,14 @@ class Translator {
      */
     formatAchievementCategoryCount(count: string, max: string) {
         return this.format("achievements.categories.count").replace("%1", count).replace("%2", max);
+    }
+
+    /**
+     * Set a language to local storage.
+     * @param language The language to set.
+     */
+    setLanguageToLocalStorage(language: string) {
+        window.localStorage.setItem("coin-clicker.language", language);
     }
 }
 

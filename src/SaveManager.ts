@@ -53,8 +53,41 @@ interface SaveObject {
     /**
      * The effects that the player was undergoing at the time of save.
      */
-    effects: SimplifiedEffects[]
+    effects: SimplifiedEffects[],
+
+    /**
+     * The audio selection done by the player.
+     */
+    audioSelection: AudioSelection
 }
+
+/**
+ * Represents the audio choice of the user.
+ */
+enum AudioSelection {
+    /**
+     * Both sounds and music are to be played.
+     */
+    ALL_AUDIO = 3,
+
+    /**
+     * Only sounds are to be played, not music.
+     */
+    ONLY_SOUNDS = 2,
+
+    /**
+     * Only music is to be played, not sounds.
+     */
+    ONLY_MUSIC = 1,
+
+    /**
+     * No audio should be played, neither sounds nor music.
+     */
+    NONE = 0
+}
+
+const AUDIO_SELECTION_PLAY_SOUNDS = 2;
+const AUDIO_SELECTION_PLAY_MUSIC = 1;
 
 /**
  * A interface that represents only the data of an effect.
@@ -119,7 +152,8 @@ class SaveManager {
             clicks: g.clicks,
             startDate: g.startDate,
             coinsDestroyed: g.coinsDestroyed,
-            effects: this.simplifyEffects(g.effects)
+            effects: this.simplifyEffects(g.effects),
+            audioSelection: +g.playSounds * AUDIO_SELECTION_PLAY_SOUNDS + +g.playingMusic * AUDIO_SELECTION_PLAY_MUSIC
         }
     }
 
@@ -161,7 +195,8 @@ class SaveManager {
             clicks: 0,
             startDate: new Date(),
             coinsDestroyed: 0,
-            effects: []
+            effects: [],
+            audioSelection: AudioSelection.NONE
         }
     }
 
@@ -231,6 +266,9 @@ class SaveManager {
                         this.game.addEffect(<EffectType>e.id, e.duration);
                     }
                     break;
+                case "audioSelection":
+                    this.game.setPlayingSound(!!(<number>data.audioSelection & AUDIO_SELECTION_PLAY_SOUNDS));
+                    this.game.setPlayingMusic(!!(<number>data.audioSelection & AUDIO_SELECTION_PLAY_MUSIC));
                 default:
                     // @ts-expect-error
                     this.game[key] = data[key];
@@ -256,6 +294,7 @@ class SaveManager {
         text += "s:" + obj.startDate.getTime() + ":";
         text += "cd:" + obj.coinsDestroyed + ":";
         text += "e:" + this.effectsToText(obj.effects) + ":";
+        text += "au:" + obj.audioSelection + ":";
         
         return text;
     }
@@ -362,6 +401,10 @@ class SaveManager {
                 case "e":
                     // Effects
                     obj.effects = this.textToEffects(value);
+                case "au":
+                    // Audio Selection
+                    obj.audioSelection = value ? parseInt(value) : AudioSelection.ALL_AUDIO;
+                    this.assert(!isNaN(obj.audioSelection));
                 case "":
                     break;
                 default:
@@ -567,4 +610,8 @@ class SaveManager {
     }
 }
 
-export default SaveManager;
+export {
+    SaveManager as default,
+    AUDIO_SELECTION_PLAY_MUSIC,
+    AUDIO_SELECTION_PLAY_SOUNDS
+};

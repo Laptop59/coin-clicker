@@ -9,6 +9,7 @@ import CoinImager from "./CoinImager";
 import Effect, { EffectType } from "./Effect";
 import Translator from "./Translator";
 import { assert, selector, selectorAll } from "./Selector";
+import audioClick from "./sounds/coin.wav";
 
 /**
  * Describes the medium in which the save is saved or load.
@@ -63,7 +64,7 @@ class Game {
     /**
      * Tells if music is currently playing.
      */
-    playingMusic = false;
+    playingMusic = true;
 
     /**
      * The start date of the player.
@@ -260,6 +261,11 @@ class Game {
     }
 
     /**
+     * Play sounds or not?
+     */
+    playSounds: boolean = true;
+
+    /**
      * Creates a new `Game` object. This is used to represent Coin Clicker, as a game object.
      * @param translator A translator instance.
      */
@@ -273,6 +279,7 @@ class Game {
 
         // Add an event for mousemove so that we can track the mouse's position.
         document.addEventListener("mousemove", this.setMouse.bind(this))
+        document.addEventListener("click", this.playMusic.bind(this));
 
         // Create the managers.
         this.saveManager = new SaveManager(this);
@@ -293,6 +300,16 @@ class Game {
         selector(".loadGameText").addEventListener("click", this.loadGame.bind(this, SaveMedium.TEXT))
         selector(".loadGameFile").addEventListener("click", this.loadGame.bind(this, SaveMedium.FILE))
 
+        selector(".changeLanguage").addEventListener("click", this.changeLanguage.bind(this));
+
+        selector(".loopMusic").addEventListener("change", () => {
+            this.setPlayingMusic((<HTMLInputElement>selector(".loopMusic")).checked, true);
+        });
+
+        selector(".playSounds").addEventListener("change", () => {
+            this.setPlayingSound((<HTMLInputElement>selector(".playSounds")).checked, true);
+        });
+
         // If the player uses the save key combination (CTRL + S), we want it to save.
         document.addEventListener('keydown', e => {
             if (e.ctrlKey && e.key === 's') {
@@ -301,6 +318,9 @@ class Game {
                 this.saveToStorage();
             }
         });
+
+        // If the page is reloaded or closed, we want to save the game.
+        window.addEventListener("beforeunload", this.saveToStorage.bind(this));
 
         // Load the save from local storage if it exists.
         this.saveManager.loadFromStorage();
@@ -382,13 +402,6 @@ class Game {
 
         // By default, buy mode is 1.
         this.changeBuyMode(1);
-
-        // Browser don't automatically play music. They wait for browser input before doing so.
-        try {
-            this.playMusic()
-        } catch {
-            console.warn("Will attempt to play music after coin click.")
-        }
     }
 
     /**
@@ -606,12 +619,35 @@ class Game {
      * Attempt to play looping music.
      */
     playMusic() {
-        if (!this.playingMusic) {
-            (<HTMLAudioElement>selector('.music'))
-                .play()
-                .then(() => this.playingMusic = true)
-                .catch(() => { })
+        const audioElement = <HTMLAudioElement>selector('.music');
+
+        if (this.playingMusic) {
+            audioElement.play()
+                        .catch(console.error)
+        } else {
+            audioElement.pause();
         }
+    }
+    
+    /**
+     * Set play music mode.
+     * @param play Whether or not play music.
+     * @param isEventListener Did this call occur due to a change event?
+     */
+    setPlayingMusic(play: boolean, isEventListener?: boolean) {
+        this.playingMusic = play;
+        if (!isEventListener) (<HTMLInputElement>selector(".loopMusic")).checked = play;
+        this.playMusic();
+    }
+
+    /**
+     * Set play sound mode.
+     * @param play Whether or not play sounds.
+     * @param isEventListener Did this call occur due to a change event?
+     */
+    setPlayingSound(play: boolean, isEventListener?: boolean) {
+        this.playSounds = play;
+        if (!isEventListener) (<HTMLInputElement>selector(".playSounds")).checked = play;
     }
 
     /**
@@ -653,8 +689,6 @@ class Game {
      * @param time The current date.
      */
     tick(time: number) {
-        this.playMusic();
-
         this.ticks++
         // Find delta time.
         const delta = time - this.oldTime;
@@ -923,6 +957,32 @@ class Game {
     }
 
     /**
+     * Show the user a popup to change the language.
+     */
+    changeLanguage() {
+        const elem = document.createElement("div");
+        this.addToElement(elem, "p", this.translator.format("dialogs.change_language.info"));
+        for (let language of Object.values(this.translator.languages)) {
+            if (!language.is_fallback) {
+                const button = this.addToElement(elem, "button", `<p>${language.name}</p>`);
+                button.className = language === this.translator.getCurrent() ? "languageOption disabled" : "languageOption";
+                button.addEventListener("click", this.setLanguageAndReload.bind(this, language.id));
+                this.addToElement(elem, "br");
+            }
+        }
+        this.showDialog(this.translator.format("options.change_language"), elem, [this.translator.format("dialogs.load.cancel")]);
+    }
+
+    /**
+     * Changes language and reloads.
+     */
+    setLanguageAndReload(language: string) {
+        this.translator.setLanguageToLocalStorage(language);
+        this.saveToStorage();
+        window.location.reload();
+    }
+
+    /**
      * Animate the falling coins based on the delta-time given.
      * @param delta Delta time.
      */
@@ -988,6 +1048,8 @@ class Game {
     coinClick() {
         this.coinSize = 0.75 * 1.5;
         this.add(this.coinsPerClick * this.multiplier);
+        this.playAudio(audioClick);
+
         this.clicks++;
 
         for (let building of buildings) {
@@ -995,6 +1057,13 @@ class Game {
             if (this.rates[id])
                 this.addToTotal(id, this.multiplier * this.rates[id][0])
         }
+    }
+
+    /**
+     * Play audio.
+     */
+    playAudio(audio: string) {
+        this.playSounds && new Audio(audio).play();
     }
 
     /**

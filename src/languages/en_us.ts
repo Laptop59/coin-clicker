@@ -17,7 +17,7 @@
 const TRANSLATION = {
     "id": "en-us",
     "name": "English",
-    "author": "Laptop59",
+    "author": "Laptop59 and AI",
     "commify": function (number: number, br = false, nodot = false): string {
         if (br) number = Math.floor(number);
 
@@ -90,6 +90,10 @@ const TRANSLATION = {
         return months[date.getMonth()] + " " + date.getDate() + ", " + date.getFullYear();
     },
     "translations": {
+        // Loading
+        "loading_screen.loading_coin_clicker": "Loading Coin Clicker...",
+        "cost": "Cost: ",
+
         ///////////
         // COINS //
         ///////////
@@ -170,13 +174,16 @@ const TRANSLATION = {
         "options.basic_title": "Basic",
         "options.game_data_title": "Game Data",
         "options.save_to_browser": "Save to browser (CTRL+S)",
+        "options.change_language": "Change language",
         "options.autosave": "Autosave",
+        "options.loop_music": "Loop music",
+        "options.play_sounds": "Play sounds",
 
-        "options.save_game_data.main": "Save your game data %1 %2.",
+        "options.save_game_data.main": "Save your game data %1 or %2.",
         "options.save_game_data.1": "into text",
         "options.save_game_data.2": "into a file",
 
-        "options.load_game_data.main": "Load your game data %1 %2.",
+        "options.load_game_data.main": "Load your game data %1 or %2.",
         "options.load_game_data.1": "from text",
         "options.load_game_data.2": "from a file",
 
@@ -211,6 +218,8 @@ const TRANSLATION = {
         "dialogs.error.fatal_error": "Fatal Error",
         "dialogs.error.info": "We're really sorry for the inconvience this has caused, but the game has experienced a fatal error.<br><br>Please reload your page.",
         "dialogs.error.reload": "Reload",
+
+        "dialogs.change_language.info": "Select the language that you want to change to:<br><sub>Note: Changing the language will save and reload your game.</sub>",
 
 
         //////////////
